@@ -142,7 +142,6 @@ flipper_R_EOS = raspberry.getIn(18)
 flipper_L_BUTTON = raspberry.getIn(23)
 flipper_R_BUTTON = raspberry.getIn(24)
 
-
 l0 = bank0B.getOut(0)
 l1 = bank0B.getOut(1)
 l2 = bank0B.getOut(2)
@@ -166,12 +165,10 @@ class Flipperstate:
 class Game():
     def __init__(self):
         self.eventHandles = {}
-        self.flipperLeft = Flipperstate.LOW
+        self.flipperL = Flipper(self, flipper_L_BUTTON, flipper_L_EOS, flipper_L_POWER_ENERGIZED, flipper_L_POWER_HOLD)
+        self.flipperR = Flipper(self, flipper_R_BUTTON, flipper_R_EOS, flipper_R_POWER_ENERGIZED, flipper_R_POWER_HOLD)
 
-        self._registerEvent(flipper_L_BUTTON, self.flipperEvent)
-        self._registerEvent(flipper_L_EOS, self.flipperEvent)
-
-    def _registerEvent(self, cause, function):
+    def registerEvent(self, cause, function):
         if cause not in self.eventHandles:
             self.eventHandles[cause] = []
         self.eventHandles[cause].append(function)
@@ -181,31 +178,44 @@ class Game():
             for event in self.eventHandles[cause]:
                 event(cause, deviceState)
 
+class Flipper:
+    """Class that manages the state of a single flipper."""
+    def __init__(self, game, button, eos, power_energized, power_hold):
+        self._state = Flipperstate.LOW
+        self._game = game
+        self._button = button
+        self._eos = eos
+        self._power_energized = power_energized
+        self._power_hold = power_hold
+
+        game.registerEvent(button, self.flipperEvent)
+        game.registerEvent(eos, self.flipperEvent)
+
     def flipperEvent(self, cause, deviceState=None):
-        state = self.flipperLeft
-        oldstate = self.flipperLeft
+        state = self._state
+        oldstate = self._state
 
         if state == Flipperstate.LOW:
-            if cause == flipper_L_BUTTON and deviceState:
+            if cause == self._button and deviceState:
                 state = Flipperstate.ENERGIZED
-            # elif cause == flipper_L_EOS and deviceState:
+            # elif cause == self._eos and deviceState:
                 # state = Flipperstate.EOS_ERROR
             elif cause == BLOCK and deviceState:
                 state = Flipperstate.BLOCKED
 
         elif state == Flipperstate.ENERGIZED:
-            if cause == flipper_L_BUTTON and not deviceState:
+            if cause == self._button and not deviceState:
                 state = Flipperstate.LOW
-            elif cause == flipper_L_EOS and deviceState:
+            elif cause == self._eos and deviceState:
                 state = Flipperstate.HOLD
             elif cause == EOSTIMEOUT:
                 print("WARNING: EOS NOT DETECTED, ASSUMING EOS HIGH")
                 state = Flipperstate.HOLD
 
         elif state == Flipperstate.HOLD:
-            if cause == flipper_L_BUTTON and not deviceState:
+            if cause == self._button and not deviceState:
                 state = Flipperstate.LOW
-            elif cause == flipper_L_EOS and not deviceState:
+            elif cause == self._eos and not deviceState:
                 state = Flipperstate.ENERGIZED
 
         elif state == Flipperstate.BLOCKED:
@@ -213,9 +223,9 @@ class Game():
                 state = Flipperstate.LOW
 
         if state != oldstate:
-            self.flipperLeft = state
-            flipper_L_POWER_ENERGIZED.set(state == Flipperstate.ENERGIZED)
-            flipper_L_POWER_HOLD.set(state == Flipperstate.HOLD)
+            self._state = state
+            self._power_energized.set(state == Flipperstate.ENERGIZED)
+            self._power_hold.set(state == Flipperstate.HOLD)
 
 
 game = Game()
@@ -234,7 +244,9 @@ import threading
 frames = 0
 lock = threading.Lock()
 def printFPS():
-    threading.Timer(1.0, printFPS).start()
+    t = threading.Timer(1.0, printFPS)
+    t.setDaemon(True)
+    t.start()
     global frames
     with lock:
         tmp = frames
