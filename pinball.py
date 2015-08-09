@@ -1,6 +1,7 @@
 
 import time
 import sys
+from collections import defaultdict
 
 try:
     import RPi.GPIO as GPIO
@@ -20,9 +21,26 @@ except:
 # Variable that holds all events that need to be processed during the next frame
 gameevents = []
 
-class GameDevice:
+class Observable:
+    def __init__(self):
+        self._observers = defaultdict(list)
+
+    def observe(self, observer, callback):
+        self._observers[observer].append(callback)
+
+    def inform(self, state=None):
+        """By calling this method, all observers will be informed that there
+        has been a change in this observable. This event will be processed
+        next tick."""
+        for observer in self._observers:
+            for callback in self._observers[observer]:
+                gameevents.append((callback, self, state))
+
+
+class GameDevice(Observable):
     """Data class that represents a device in the game."""
     def __init__(self, bank, pin):
+        Observable.__init__(self)
         self._bank = bank
         self._pin = pin
 
@@ -125,7 +143,7 @@ class RaspberryPi(ControlDevice):
         for pin, (device, oldstate) in self._devices.items():
             if GPIO.input(pin) != oldstate:
                 self._devices[pin] = (device, not oldstate)
-                gameevents.append((device, not oldstate))
+                device.inform(not oldstate)
 
 # Instantiate the hardware
 raspberry = RaspberryPi()
@@ -162,34 +180,24 @@ class Flipperstate:
     BLOCKED = "Blocked" #0x03
     EOS_ERROR = "EOS ERROR" #0xFF
 
+
 class Game():
     def __init__(self):
-        self.eventHandles = {}
-        self.flipperL = Flipper(self, flipper_L_BUTTON, flipper_L_EOS, flipper_L_POWER_ENERGIZED, flipper_L_POWER_HOLD)
-        self.flipperR = Flipper(self, flipper_R_BUTTON, flipper_R_EOS, flipper_R_POWER_ENERGIZED, flipper_R_POWER_HOLD)
+        self.flipperL = Flipper(flipper_L_BUTTON, flipper_L_EOS, flipper_L_POWER_ENERGIZED, flipper_L_POWER_HOLD)
+        self.flipperR = Flipper(flipper_R_BUTTON, flipper_R_EOS, flipper_R_POWER_ENERGIZED, flipper_R_POWER_HOLD)
 
-    def registerEvent(self, cause, function):
-        if cause not in self.eventHandles:
-            self.eventHandles[cause] = []
-        self.eventHandles[cause].append(function)
-
-    def handleEvent(self, cause, deviceState=None):
-        if cause in self.eventHandles:
-            for event in self.eventHandles[cause]:
-                event(cause, deviceState)
 
 class Flipper:
     """Class that manages the state of a single flipper."""
-    def __init__(self, game, button, eos, power_energized, power_hold):
+    def __init__(self, button, eos, power_energized, power_hold):
         self._state = Flipperstate.LOW
-        self._game = game
         self._button = button
         self._eos = eos
         self._power_energized = power_energized
         self._power_hold = power_hold
 
-        game.registerEvent(button, self.flipperEvent)
-        game.registerEvent(eos, self.flipperEvent)
+        button.observe(self, self.flipperEvent)
+        eos.observe(self, self.flipperEvent)
 
     def flipperEvent(self, cause, deviceState=None):
         state = self._state
@@ -232,9 +240,9 @@ game = Game()
 
 def tick():
     while gameevents:
-        (cause, newstate) = gameevents.pop(0)
-        # print("> Process event {} -> {}".format(cause, newstate))
-        game.handleEvent(cause, newstate)
+        (event, cause, newstate) = gameevents.pop(0)
+        event(cause, newstate)
+
 
 def sync():
     for bank in devices:
