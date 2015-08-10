@@ -1,3 +1,19 @@
+"""
+Simple Pinball event based game controller.
+Author: TheUC
+
+Known bugs:
+* When starting from non-initial state, events might not be excecuted in the
+  correct order, resulting in a faulty game state.a
+
+* (Related) In the border case where two related events happen in the same
+  game-frame, the game state may get corrupted. (e.g. Flipper button press and
+  EOS occur in the same frame, and the EOS event is processed before the
+  ENERGIZED event, the game will ignore the first event (not in the correct
+  state to process the EOS), next it process the button press, putting the game
+  in a state where the game waits for EOS. Since EOS has already been processed
+  it will not be re-processed the next game frame.)
+"""
 
 import time
 import sys
@@ -145,6 +161,40 @@ class RaspberryPi(ControlDevice):
                 self._devices[pin] = (device, not oldstate)
                 device.inform(not oldstate)
 
+class GameTimer(Observable):
+    """
+    Simple timer that can be used in a game. Constructed with a timeout,
+    can be started and stopped whenever the game wants to. If a timeout occurs,
+    all the observers will be notified. The status argument contains the set
+    timeout. When a GameTimer iss canceled before the timeout occurs, then
+    the observers are not notified.
+    """
+    def __init__(self, timeout):
+        """Constructor, timeout in seconds."""
+        Observable.__init__(self)
+        self._t = None
+        self._timeout = timeout
+
+    def restart(self):
+        self.cancel()
+        self.start()
+
+    def cancel(self):
+        if self._t:
+            self._t.cancel()
+            self._t = None
+
+    def start(self):
+        self._enabled = True
+        self._t = threading.Timer(self._timeout, self._handle)
+        self._t.setDaemon(True)
+        self._t.start()
+
+    def _handle(self):
+        """Internal handle, informs all observers on the occurence of a timeout."""
+        self.inform(self._timeout)
+
+
 # Instantiate the hardware
 raspberry = RaspberryPi()
 bank0A = PowerDriver16(0, 0)
@@ -177,7 +227,8 @@ class Flipperstate:
     LOW = "Low" #0x00
     ENERGIZED = "Energized" #0x01
     HOLD = "Hold" #0x02
-    BLOCKED = "Blocked" #0x03
+    EOSHOLD = "EOSHold" #0x03
+    BLOCKED = "Blocked" #0x04
     EOS_ERROR = "EOS ERROR" #0xFF
 
 
@@ -188,16 +239,29 @@ class Game():
 
 
 class Flipper:
-    """Class that manages the state of a single flipper."""
+    """
+    Class that manages the state of a single 'fliptronic' flipper.
+
+    When energized, the game waits for the EOS to be triggerd. When this hapens
+    the flipper is switched to 'hold' (low current mode) to prevent the flipper
+    coil from burning.
+    The hardware EOS is backed up by a software EOS: if the hardware EOS is not 
+    fired within a reasonable amount of time, the flipper is switched to a
+    a special hold state. In this special hold state, the flipper can not
+    recover from a ball kick: the flipper is down and can not come up again
+    without re-pressing the flipper button.
+    """
     def __init__(self, button, eos, power_energized, power_hold):
         self._state = Flipperstate.LOW
         self._button = button
         self._eos = eos
         self._power_energized = power_energized
         self._power_hold = power_hold
+        self._eostimer = GameTimer(0.2)
 
         button.observe(self, self.flipperEvent)
         eos.observe(self, self.flipperEvent)
+        self._eostimer.observe(self, self.flipperEvent)
 
     def flipperEvent(self, cause, deviceState=None):
         state = self._state
@@ -216,15 +280,22 @@ class Flipper:
                 state = Flipperstate.LOW
             elif cause == self._eos and deviceState:
                 state = Flipperstate.HOLD
-            elif cause == EOSTIMEOUT:
+            elif cause == self._eostimer:
                 print("WARNING: EOS NOT DETECTED, ASSUMING EOS HIGH")
-                state = Flipperstate.HOLD
+                state = Flipperstate.EOSHOLD
 
         elif state == Flipperstate.HOLD:
             if cause == self._button and not deviceState:
                 state = Flipperstate.LOW
             elif cause == self._eos and not deviceState:
                 state = Flipperstate.ENERGIZED
+
+        elif state == Flipperstate.EOSHOLD:
+            if cause == self._button and not deviceState:
+                state = Flipperstate.LOW
+            elif cause == self._eos and deviceState:
+                print("(Finally!) GOT EOS")
+                state = Flipperstate.HOLD
 
         elif state == Flipperstate.BLOCKED:
             if cause == UNBLOCK:
@@ -234,6 +305,13 @@ class Flipper:
             self._state = state
             self._power_energized.set(state == Flipperstate.ENERGIZED)
             self._power_hold.set(state == Flipperstate.HOLD)
+            if state == Flipperstate.ENERGIZED:
+                self._eostimer.restart()
+            else:
+                self._eostimer.cancel()
+            print("ACTION")
+        else:
+            print("NO ACTION")
 
 
 game = Game()
