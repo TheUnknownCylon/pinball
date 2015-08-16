@@ -1,5 +1,5 @@
 """
-Simple Pinball event based game controller.
+Simple event based Pinball controller.
 Author: TheUC
 
 Known bugs:
@@ -13,6 +13,11 @@ Known bugs:
   state to process the EOS), next it process the button press, putting the game
   in a state where the game waits for EOS. Since EOS has already been processed
   it will not be re-processed the next game frame.)
+
+Future improvements:
+
+* Formalise serial communication to Arduino (error recovery, 'dirty' start)
+
 """
 
 import time
@@ -30,7 +35,9 @@ ser = None
 try:
     import serial
     ser = serial.Serial('/dev/ttyAMA0', 9600)
-except:
+    ser.write("MY MAGIC PINBALL\r\n".encode())
+except Exception as e:
+    print(e)
     print("NO SERIAL DEVICE SET! SENDING DATA TO STDOUT INSTEAD!")
 
 
@@ -132,9 +139,7 @@ class PowerDriver16(ControlDevice):
             data = "> 0x{0:02X} 0x{1:02X} 0x{2:02X}".format(self._board, self._bank, self._values)
             print(data)
             if ser:
-                ser.write(bank._board)
-                ser.write(bank._bank)
-                ser.write(bank._value)
+                ser.write([self._board, self._bank, self._values])
         self._dirty = False
 
     def __str__(self):
@@ -201,11 +206,11 @@ bank0A = PowerDriver16(0, 0)
 bank0B = PowerDriver16(0, 1)
 devices = [raspberry, bank0A, bank0B]
 
-flipper_L_POWER_ENERGIZED = bank0A.getOut(0)
-flipper_L_POWER_HOLD = bank0A.getOut(1)
+flipper_L_POWER_ENERGIZED = bank0A.getOut(4)
+flipper_L_POWER_HOLD = bank0A.getOut(5)
 flipper_L_EOS = raspberry.getIn(17)
-flipper_R_POWER_ENERGIZED = bank0A.getOut(2)
-flipper_R_POWER_HOLD = bank0A.getOut(3)
+flipper_R_POWER_ENERGIZED = bank0A.getOut(6)
+flipper_R_POWER_HOLD = bank0A.getOut(7)
 flipper_R_EOS = raspberry.getIn(18)
 flipper_L_BUTTON = raspberry.getIn(23)
 flipper_R_BUTTON = raspberry.getIn(24)
@@ -257,7 +262,7 @@ class Flipper:
         self._eos = eos
         self._power_energized = power_energized
         self._power_hold = power_hold
-        self._eostimer = GameTimer(0.2)
+        self._eostimer = GameTimer(2)
 
         button.observe(self, self.flipperEvent)
         eos.observe(self, self.flipperEvent)
@@ -304,15 +309,11 @@ class Flipper:
         if state != oldstate:
             self._state = state
             self._power_energized.set(state == Flipperstate.ENERGIZED)
-            self._power_hold.set(state == Flipperstate.HOLD)
+            self._power_hold.set(state == Flipperstate.HOLD or state == Flipperstate.EOSHOLD)
             if state == Flipperstate.ENERGIZED:
                 self._eostimer.restart()
             else:
                 self._eostimer.cancel()
-            print("ACTION")
-        else:
-            print("NO ACTION")
-
 
 game = Game()
 
