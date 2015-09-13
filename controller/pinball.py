@@ -206,23 +206,23 @@ bank0A = PowerDriver16(0, 0)
 bank0B = PowerDriver16(0, 1)
 devices = [raspberry, bank0A, bank0B]
 
-flipper_L_POWER_ENERGIZED = bank0A.getOut(4)
-flipper_L_POWER_HOLD = bank0A.getOut(5)
+flipper_L_POWER_ENERGIZED = bank0B.getOut(0)
+flipper_L_POWER_HOLD = bank0B.getOut(1)
 flipper_L_EOS = raspberry.getIn(17)
-flipper_R_POWER_ENERGIZED = bank0A.getOut(6)
-flipper_R_POWER_HOLD = bank0A.getOut(7)
+flipper_R_POWER_ENERGIZED = bank0B.getOut(2)
+flipper_R_POWER_HOLD = bank0B.getOut(3)
 flipper_R_EOS = raspberry.getIn(18)
 flipper_L_BUTTON = raspberry.getIn(23)
 flipper_R_BUTTON = raspberry.getIn(24)
 
-l0 = bank0B.getOut(0)
-l1 = bank0B.getOut(1)
-l2 = bank0B.getOut(2)
-l3 = bank0B.getOut(3)
-l4 = bank0B.getOut(4)
-l5 = bank0B.getOut(5)
-l6 = bank0B.getOut(6)
-l7 = bank0B.getOut(7)
+# l0 = bank0B.getOut(0)
+# l1 = bank0B.getOut(1)
+# l2 = bank0B.getOut(2)
+# l3 = bank0B.getOut(3)
+# l4 = bank0B.getOut(4)
+# l5 = bank0B.getOut(5)
+# l6 = bank0B.getOut(6)
+# l7 = bank0B.getOut(7)
 
 BLOCK = 0
 UNBLOCK = 0
@@ -262,7 +262,7 @@ class Flipper:
         self._eos = eos
         self._power_energized = power_energized
         self._power_hold = power_hold
-        self._eostimer = GameTimer(2)
+        self._eostimer = GameTimer(0.02)
 
         button.observe(self, self.flipperEvent)
         eos.observe(self, self.flipperEvent)
@@ -344,7 +344,7 @@ printFPS()
 while True:
     tick()
     sync()
-    time.sleep(0.01)
+    time.sleep(0.002)
     with lock:
         frames+=1
 
