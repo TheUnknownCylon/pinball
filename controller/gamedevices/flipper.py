@@ -1,5 +1,6 @@
 
 from .timer import GameTimer
+from e_observable import Observable
 
 BLOCK = 0
 UNBLOCK = 0
@@ -15,7 +16,7 @@ class Flipperstate:
     EOS_ERROR = "EOS ERROR"  # 0xFF
 
 
-class Flipper():
+class Flipper(Observable):
 
     """
     Class that manages the state of a single 'fliptronic' flipper.
@@ -31,6 +32,7 @@ class Flipper():
     """
 
     def __init__(self, button, eos, power_energized, power_hold):
+        Observable.__init__(self)
         self._state = Flipperstate.LOW
         self._button = button
         self._eos = eos
@@ -49,6 +51,7 @@ class Flipper():
         if state == Flipperstate.LOW:
             if cause == self._button and deviceState:
                 state = Flipperstate.ENERGIZED
+                self.inform(state)
             # elif cause == self._eos and deviceState:
                 # state = Flipperstate.EOS_ERROR
             elif cause == BLOCK and deviceState:

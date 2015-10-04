@@ -24,27 +24,60 @@ from gameengine import GameEngine
 from controllerdevices import PowerDriver16, RaspberryPi
 from gamedevices import Flipper
 
-# Instantiate the hardware
-raspberry = RaspberryPi()
-bank0A = PowerDriver16(0, 0)
-bank0B = PowerDriver16(0, 1)
-devices = [raspberry, bank0A, bank0B]
-
-flipper_L_POWER_ENERGIZED = bank0B.getOut(0)
-flipper_L_POWER_HOLD = bank0B.getOut(1)
-flipper_L_EOS = raspberry.getIn(17)
-flipper_R_POWER_ENERGIZED = bank0B.getOut(2)
-flipper_R_POWER_HOLD = bank0B.getOut(3)
-flipper_R_EOS = raspberry.getIn(18)
-flipper_L_BUTTON = raspberry.getIn(23)
-flipper_R_BUTTON = raspberry.getIn(24)
+from gameengine.sounds import SoundManager
+import threading
+import time
 
 
-flipperL = Flipper(flipper_L_BUTTON, flipper_L_EOS,
-                   flipper_L_POWER_ENERGIZED, flipper_L_POWER_HOLD)
-flipperR = Flipper(flipper_R_BUTTON, flipper_R_EOS,
-                   flipper_R_POWER_ENERGIZED, flipper_R_POWER_HOLD)
+sm = SoundManager()
 
 
-ge = GameEngine(devices)
-ge.run()
+class MyPinballGame():
+
+    def __init__(self):
+
+        # Instantiate the hardware
+        raspberry = RaspberryPi()
+        bank0A = PowerDriver16(0, 0)
+        bank0B = PowerDriver16(0, 1)
+        devices = [raspberry, bank0A, bank0B]
+
+        flipper_L_POWER_ENERGIZED = bank0B.getOut(0)
+        flipper_L_POWER_HOLD = bank0B.getOut(1)
+        flipper_L_EOS = raspberry.getIn(17)
+        flipper_R_POWER_ENERGIZED = bank0B.getOut(2)
+        flipper_R_POWER_HOLD = bank0B.getOut(3)
+        flipper_R_EOS = raspberry.getIn(18)
+        flipper_L_BUTTON = raspberry.getIn(23)
+        flipper_R_BUTTON = raspberry.getIn(24)
+
+        flipperL = Flipper(flipper_L_BUTTON, flipper_L_EOS,
+                           flipper_L_POWER_ENERGIZED, flipper_L_POWER_HOLD)
+        flipperR = Flipper(flipper_R_BUTTON, flipper_R_EOS,
+                           flipper_R_POWER_ENERGIZED, flipper_R_POWER_HOLD)
+
+        ge = GameEngine(devices)
+
+        # Play a sound when the left or right flippers are energized
+        flipperL.observe(self, self._flipperEnergized)
+        flipperR.observe(self, self._flipperEnergized)
+        # self._sFlipper = ge.getSoundManager().createSFX("flipper.wav")
+
+        ge.run()
+
+    def _flipperEnergized(self, state, x):
+        # self._sFlipper.play()
+        pass
+
+    def testSounds():
+        pass
+
+
+# MyPinballGame()
+# sm.playbg("/home/remco/media/main.wav")
+# time.sleep(5)
+
+c = TestCinematic()
+c.run()
+
+time.sleep(999999)
