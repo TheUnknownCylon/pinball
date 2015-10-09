@@ -22,7 +22,7 @@ Future improvements:
 
 from gameengine import GameEngine
 from controllerdevices import PowerDriver16, RaspberryPi
-from gamedevices import Flipper
+from gamedevices import Flipper, Slingshot
 
 # Instantiate the hardware
 raspberry = RaspberryPi()
@@ -32,19 +32,25 @@ devices = [raspberry, bank0A, bank0B]
 
 flipper_L_POWER_ENERGIZED = bank0B.getOut(0)
 flipper_L_POWER_HOLD = bank0B.getOut(1)
-flipper_L_EOS = raspberry.getIn(17)
+flipper_L_EOS = raspberry.getIn(-1)
 flipper_R_POWER_ENERGIZED = bank0B.getOut(2)
 flipper_R_POWER_HOLD = bank0B.getOut(3)
-flipper_R_EOS = raspberry.getIn(18)
+flipper_R_EOS = raspberry.getIn(-1)
 flipper_L_BUTTON = raspberry.getIn(23)
 flipper_R_BUTTON = raspberry.getIn(24)
 
+slingshot_left_detect = raspberry.getIn(18)
+slingshot_left_coil = bank0B.getOut(4)
+slingshot_right_detect = raspberry.getIn(22)
+slingshot_right_coil = bank0B.getOut(5)
 
 flipperL = Flipper(flipper_L_BUTTON, flipper_L_EOS,
                    flipper_L_POWER_ENERGIZED, flipper_L_POWER_HOLD)
 flipperR = Flipper(flipper_R_BUTTON, flipper_R_EOS,
                    flipper_R_POWER_ENERGIZED, flipper_R_POWER_HOLD)
 
+slingshotL = Slingshot(slingshot_left_detect, slingshot_left_coil)
+slingshotR = Slingshot(slingshot_right_detect, slingshot_right_coil)
 
 ge = GameEngine(devices)
 ge.run()
