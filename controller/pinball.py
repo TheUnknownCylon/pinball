@@ -45,12 +45,60 @@ slingshot_right_detect = raspberry.getIn(22)
 slingshot_right_coil = bank0B.getOut(5)
 
 flipperL = Flipper(flipper_L_BUTTON, flipper_L_EOS,
-                   flipper_L_POWER_ENERGIZED, flipper_L_POWER_HOLD)
+        flipper_L_POWER_ENERGIZED, flipper_L_POWER_HOLD)
 flipperR = Flipper(flipper_R_BUTTON, flipper_R_EOS,
-                   flipper_R_POWER_ENERGIZED, flipper_R_POWER_HOLD)
+        flipper_R_POWER_ENERGIZED, flipper_R_POWER_HOLD)
 
 slingshotL = Slingshot(slingshot_left_detect, slingshot_left_coil)
 slingshotR = Slingshot(slingshot_right_detect, slingshot_right_coil)
 
+
+#######################################
+# All code below is *experimental* flipper control over curses
+# It doesn't work very well... 
+# * curses does not support, so no two flippers at the same time
+# * holding a key down results in KEYPRESS <LONG WAIT> KEYPRESS <SHORT WAIT> KEYPRESS <SHORT WAIT> (...)
+#   (as in typing text in a terminal)
+#
+import threading
+import curses
+from curses import wrapper
+import time
+from gamedevices import GameTimer
 ge = GameEngine(devices)
-ge.run()
+t = threading.Thread(target=ge.run)
+t.daemon = True
+t.start()
+
+def deactL(*args, **kwargs):
+    flipper_L_BUTTON.inform(False)
+def deactR(*args, **kwargs):
+    flipper_R_BUTTON.inform(False)
+
+def pinballui(stdscr):
+
+    stdscr.clear()
+    stdscr.nodelay(True)
+
+    tL = GameTimer(0.7)
+    tR = GameTimer(0.7)
+    tL.observe("m", deactL)
+    tR.observe("m", deactR)
+
+
+    while True:
+        c = stdscr.getch()
+        nleft = c == curses.KEY_SLEFT or c == ord('z')
+        nright = c == curses.KEY_SRIGHT or c == ord('x')
+
+        if nleft:
+            flipper_L_BUTTON.inform(True)
+            tL.restart()
+
+        if nright:
+            flipper_R_BUTTON.inform(True)
+            tR.restart()
+
+        time.sleep(0.01)
+
+wrapper(pinballui)

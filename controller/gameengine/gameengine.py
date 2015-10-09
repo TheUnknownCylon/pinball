@@ -30,7 +30,7 @@ class GameEngine():
     def run(self):
         while True:
             self.tick()
-            
+
             self.sync()
             # TODO: Two pass sync? Write to devices before going to
             #      sleep, and read from devices after sleep.
