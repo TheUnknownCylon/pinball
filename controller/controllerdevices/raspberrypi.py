@@ -19,6 +19,10 @@ class RaspberryPi(HWController):
         self._devices = {}
 
     def getIn(self, pin):
+        if(pin == -1):
+            #dummy
+            return InGameDevice(self, -1)
+
         if(pin in self._devices):
             raise Exception("Pin was already instanciated!")
         self._devices[pin] = (InGameDevice(self, pin), 0)  # default off
