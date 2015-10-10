@@ -1,4 +1,4 @@
-
+import sys
 from .hwgamedevice import InGameDevice
 from .hwcontroller import HWController
 

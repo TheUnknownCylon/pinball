@@ -23,6 +23,7 @@ Future improvements:
 from gameengine import GameEngine
 from controllerdevices import PowerDriver16, RaspberryPi
 from gamedevices import Flipper, Slingshot
+import threading
 
 # Instantiate the hardware
 raspberry = RaspberryPi()
@@ -45,12 +46,59 @@ slingshot_right_detect = raspberry.getIn(22)
 slingshot_right_coil = bank0B.getOut(5)
 
 flipperL = Flipper(flipper_L_BUTTON, flipper_L_EOS,
-                   flipper_L_POWER_ENERGIZED, flipper_L_POWER_HOLD)
+        flipper_L_POWER_ENERGIZED, flipper_L_POWER_HOLD)
 flipperR = Flipper(flipper_R_BUTTON, flipper_R_EOS,
-                   flipper_R_POWER_ENERGIZED, flipper_R_POWER_HOLD)
+        flipper_R_POWER_ENERGIZED, flipper_R_POWER_HOLD)
 
 slingshotL = Slingshot(slingshot_left_detect, slingshot_left_coil)
 slingshotR = Slingshot(slingshot_right_detect, slingshot_right_coil)
 
-ge = GameEngine(devices)
-ge.run()
+
+##############################################################################
+# Code that provides a (web) GUI for the pinball machine
+import tornado
+import tornado.ioloop
+import tornado.web
+import tornado.websocket
+
+class PBWebSocket(tornado.websocket.WebSocketHandler):
+    """Communication channel with the webpage"""
+    def open(self):
+        print("WebSocket opened")
+
+    def on_message(self, message):
+        if message == "LD":
+            flipper_L_BUTTON.inform(True)
+        elif message == "LU":
+            flipper_L_BUTTON.inform(False)
+        elif message == "RD":
+            flipper_R_BUTTON.inform(True)
+        elif message == "RU":
+            flipper_R_BUTTON.inform(False)
+
+    def on_close(self):
+        print("WebSocket closed");
+
+
+class PinballPage(tornado.web.RequestHandler):
+    """Serves the Pinball GUI page"""
+    def get(self):
+        self.render("views/index.html")
+
+def make_gui():
+    return tornado.web.Application([
+        (r"/", PinballPage),
+        (r"/websocket", PBWebSocket),
+        ])
+
+# Start the pinball machine and GUI when started from the CLI
+if __name__ == "__main__":
+    ge = GameEngine(devices)
+    t = threading.Thread(target=ge.run)
+    t.daemon = True
+    t.start()
+
+    guiapp = make_gui()
+    guiapp.listen(8888)
+    tornado.ioloop.IOLoop.current().start()
+
