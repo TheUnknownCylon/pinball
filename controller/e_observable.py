@@ -24,6 +24,14 @@ class Observable:
     def observe(self, observer, callback):
         self._observers[observer].append(callback)
 
+    def deobserve(self, observer, callback):
+        try:
+            self._observers[observer].remove(callback)
+            if len(self._observers[observer]) == 0:
+                self._observers.pop(observer, None)
+        except:
+            pass
+
     def inform(self, state=None):
         """By calling this method, all observers will be informed that there
         has been a change in this observable. This event will be processed
