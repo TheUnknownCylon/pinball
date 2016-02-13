@@ -6,10 +6,17 @@ class GameDevice(Observable):
 
     """Data class that represents a device in the game."""
 
-    def __init__(self, bank, pin):
+    def __init__(self, name, hwgamedevice):
         Observable.__init__(self)
-        self._bank = bank
-        self._pin = pin
+        self._device = hwgamedevice
+        self._activated = False
+        self._name = name
+
+    def isActivated(self):
+        return self._activated
+
+    def getName(self):
+        return self._name
 
 
 class OutGameDevice(GameDevice):
@@ -21,14 +28,21 @@ class OutGameDevice(GameDevice):
             self.deactivate()
 
     def activate(self):
-        self._bank.activate(self._pin)
+        self._device.activate(self)
+        if self._activated is not True:
+            self._activated = True
+            Observable.inform(self, self._activated)
 
     def deactivate(self):
-        self._bank.deactivate(self._pin)
-
-    def toggle(self):
-        self._bank.toggle(self._pin)
+        self._device.deactivate(self)
+        if self._activated is not False:
+            self._activated = False
+            Observable.inform(self, self._activated)
 
 
 class InGameDevice(GameDevice):
-    pass
+
+    def inform(self, state):
+        if self._activated != state:
+            self._activated = state
+            Observable.inform(self, state)
