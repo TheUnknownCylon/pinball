@@ -15,28 +15,22 @@ except Exception as e:
 class PowerDriver16(HWController):
 
     def __init__(self, board, bank):
+        HWController.__init__(self)
         self._board = board
         self._bank = bank
         self._values = 0x00
         self._dirty = True
 
-    def getOut(self, pin):
-        return OutGameDevice(self, 1 << pin)
+    def getOut(self, name, pin):
+        return PowerDriver16OutGameDevice(name, self, 1 << pin)
 
-    def getIn(self, pin):
-        return InGameDevice(self, 1 << pin)
-
-    def activate(self, pin):
+    def activate(self, device):
         self._dirty = True
-        self._values |= pin
+        self._values |= device.pin
 
-    def deactivate(self, pin):
+    def deactivate(self, device):
         self._dirty = True
-        self._values &= (~pin)
-
-    def toggle(self, pin):
-        self._dirty = True
-        self._values ^= pin
+        self._values &= (~device.pin)
 
     def sync(self):
         if(self._dirty):
@@ -49,3 +43,10 @@ class PowerDriver16(HWController):
 
     def __str__(self):
         return "[{0} {1}] [ {2:08b} ]".format(self._board, "B" if self._bank else "A", self._values)
+
+
+class PowerDriver16OutGameDevice(OutGameDevice):
+
+    def __init__(self, name, hwgamedevice, pin):
+        OutGameDevice.__init__(self, name, hwgamedevice)
+        self.pin = pin
