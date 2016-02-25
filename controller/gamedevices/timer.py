@@ -1,10 +1,9 @@
-
-import time
+from .gamedevice import GameDevice
 from e_observable import Observable
 import threading
 
 
-class GameTimer(Observable):
+class GameTimer(GameDevice, Observable):
 
     """
     Simple timer that can be used in a game. Constructed with a timeout,
@@ -16,6 +15,7 @@ class GameTimer(Observable):
 
     def __init__(self, timeout):
         """Constructor, timeout in seconds."""
+        GameDevice.__init__(self)
         Observable.__init__(self)
         self._t = None
         self._timeout = timeout
@@ -36,5 +36,6 @@ class GameTimer(Observable):
         self._t.start()
 
     def _handle(self):
-        """Internal handle, informs all observers on the occurence of a timeout."""
+        """Internal handle, informs all observers on the occurence of a
+        timeout."""
         self.inform(self._timeout)

@@ -4,7 +4,7 @@ from e_observable import Observable
 
 class GameDevice(Observable):
 
-    """Data class that represents a device in the game."""
+    """Data class that represents a two-state hardware device in the game."""
 
     def __init__(self, name, hwgamedevice):
         Observable.__init__(self)
@@ -42,7 +42,14 @@ class OutGameDevice(GameDevice):
 
 class InGameDevice(GameDevice):
 
+    def __init__(self, name, hwgamedevice, inv=False):
+        GameDevice.__init__(self, name, hwgamedevice)
+        self._inv = inv
+
     def inform(self, state):
+        if self._inv:
+            state = not state
+
         if self._activated != state:
             self._activated = state
             Observable.inform(self, state)

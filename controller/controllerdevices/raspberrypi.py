@@ -12,8 +12,8 @@ GPIO.setmode(GPIO.BCM)
 
 class RaspberryPiInGameDevice(InGameDevice):
 
-    def __init__(self, name, hwdevice, pin):
-        InGameDevice.__init__(self, name, hwdevice)
+    def __init__(self, name, hwdevice, pin, **kwargs):
+        InGameDevice.__init__(self, name, hwdevice, **kwargs)
         self._pin = pin
 
 
@@ -25,16 +25,20 @@ class RaspberryPi(HWController):
         HWController.__init__(self)
         self._devices = {}  # map of (InGameDevice, oldstate)
 
-    def getIn(self, name, pin):
+    def getHwDevices(self):
+        return list([x[0] for x in self._devices.values()])
+
+    def getIn(self, name, pin, **kwargs):
         if(pin == -1):
             # dummy
-            return RaspberryPiInGameDevice(name, self, -1)
+            return RaspberryPiInGameDevice(name, self, -1, **kwargs)
 
         if(pin in self._devices):
             raise Exception("Pin was already instanciated!")
 
         # Create device, default off
-        self._devices[pin] = (RaspberryPiInGameDevice(name, self, pin), 0)
+        self._devices[pin] = (RaspberryPiInGameDevice(
+            name, self, pin), 0 ** kwargs)
         GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         return self._devices[pin][0]
 

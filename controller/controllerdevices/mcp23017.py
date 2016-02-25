@@ -77,10 +77,16 @@ class Mcp23017(HWController):
         # For bank A and B keep the input devices
         self._indevices = [[], []]
 
+        # Keep all devices in a single list to return to the HWController
+        self._devices = []
+
         # Initialise by setting all values as output and set to LOW
         self.bus.write_byte_data(self._address, self.IODIRA, 0x00)
         self.bus.write_byte_data(self._address, self.IODIRB, 0x00)
         self.sync()
+
+    def getHwDevices(self):
+        return self._devices
 
     def getOut(self, name, pin, bank):
         """Returns an output device object associated with the provided pin and
@@ -91,9 +97,11 @@ class Mcp23017(HWController):
         @param pin  Pin on the bank
         @param bank Bank identifier (use Mcp23017.BANKA or Mcp23017.BANKB)
         """
-        return Mcp23017OutGameDevice(name, self, pin, bank)
+        device = Mcp23017OutGameDevice(name, self, pin, bank)
+        self._devices.append(device)
+        return device
 
-    def getIn(self, name, pin, bank):
+    def getIn(self, name, pin, bank, **kwargs):
         """Returns an input device object associated with the provided pin and
         bank.
 
@@ -109,9 +117,10 @@ class Mcp23017(HWController):
         self.bus.write_byte_data(
             self._address, self.IODIRB, self._directions[self.BANKB])
 
-        newDevice = Mcp23017InGameDevice(name, self, pin, bank)
-        self._indevices[bank].append(newDevice)
-        return newDevice
+        device = Mcp23017InGameDevice(name, self, pin, bank, **kwargs)
+        self._indevices[bank].append(device)
+        self._devices.append(device)
+        return device
 
     def sync(self):
 
@@ -151,7 +160,6 @@ class Mcp23017(HWController):
             if device.oldstate != devstate:
                 device.oldstate = devstate
                 device.inform(devstate)
-                print("CHANGED")
 
 
 class Mcp23017OutGameDevice(OutGameDevice):
@@ -164,8 +172,8 @@ class Mcp23017OutGameDevice(OutGameDevice):
 
 class Mcp23017InGameDevice(InGameDevice):
 
-    def __init__(self, name, hwdevice, pin, bank):
-        InGameDevice.__init__(self, name, hwdevice)
+    def __init__(self, name, hwdevice, pin, bank, **kwargs):
+        InGameDevice.__init__(self, name, hwdevice, **kwargs)
         self.pin = (1 << pin)
         self.bank = bank   # pin on Bank A or Bank B
         self.oldstate = 0  # Known state, variable controlled by Mcp23017

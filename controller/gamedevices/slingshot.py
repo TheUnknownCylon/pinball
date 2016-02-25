@@ -1,11 +1,12 @@
-
+from .gamedevice import GameDevice
 from .timer import GameTimer
 from time import time
 
 
-class Slingshot():
+class Slingshot(GameDevice):
 
     def __init__(self, detector, coil):
+        GameDevice.__init__(self)
         self._detector = detector
         self._coil = coil
         self._coiltimer = GameTimer(0.02)
