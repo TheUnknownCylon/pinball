@@ -1,4 +1,4 @@
-
+from .gamedevice import GameDevice
 from .timer import GameTimer
 from e_observable import Observable
 
@@ -16,7 +16,7 @@ class Flipperstate:
     EOS_ERROR = "EOS ERROR"  # 0xFF
 
 
-class Flipper(Observable):
+class Flipper(GameDevice):
 
     """
     Class that manages the state of a single 'fliptronic' flipper.
@@ -24,7 +24,7 @@ class Flipper(Observable):
     When energized, the game waits for the EOS to be triggerd. When this hapens
     the flipper is switched to 'hold' (low current mode) to prevent the flipper
     coil from burning.
-    The hardware EOS is backed up by a software EOS: if the hardware EOS is not 
+    The hardware EOS is backed up by a software EOS: if the hardware EOS is not
     fired within a reasonable amount of time, the flipper is switched to a
     a special hold state. In this special hold state, the flipper can not
     recover from a ball kick: the flipper is down and can not come up again
@@ -32,7 +32,8 @@ class Flipper(Observable):
     """
 
     def __init__(self, button, eos, power_energized, power_hold):
-        Observable.__init__(self)
+        GameDevice.__init__(self)
+
         self._state = Flipperstate.LOW
         self._button = button
         self._eos = eos
@@ -51,7 +52,6 @@ class Flipper(Observable):
         if state == Flipperstate.LOW:
             if cause == self._button and deviceState:
                 state = Flipperstate.ENERGIZED
-                self.inform(state)
             # elif cause == self._eos and deviceState:
                 # state = Flipperstate.EOS_ERROR
             elif cause == BLOCK and deviceState:

@@ -16,7 +16,7 @@ class FPS:
         # Start the FPS thread
         self._printFPS()
 
-    def _tick(self):
+    def tick(self):
         with self._lock:
             self._frames += 1
 
