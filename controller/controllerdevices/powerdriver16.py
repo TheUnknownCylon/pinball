@@ -2,6 +2,27 @@
 from .hwgamedevice import OutGameDevice
 from .hwcontroller import HWController
 
+"""
+PowerDriver16
+
+Notes:
+    - Only works when directly executed from a RaspberryPi
+
+    - Communication: RPI --> Arduino --> Powerdriver
+
+    - Application to be executed on the Raspbery can be found in
+      projectroot/powerdriver_16_arduino/
+
+    - Communication protocol works when:
+       1) Powering up the RaspberryPi
+       2) Powering up the Aruidno (after 1 is finished)
+       3) Starting the pinball application
+
+       , but is also not yet properly implemented debugged.
+
+    - Requires write-permissions to /dev/ttyAMA0
+"""
+
 ser = None
 try:
     import serial
@@ -9,43 +30,48 @@ try:
     ser.write("MY MAGIC PINBALL\r\n".encode())
 except Exception as e:
     print(e)
-    print("NO SERIAL DEVICE SET! SENDING DATA TO STDOUT INSTEAD!")
+    print("NO SERIAL DEVICE FOUND! PowerDriver16 will not work!")
 
 
 class PowerDriver16(HWController):
 
     def __init__(self, board, bank):
+        HWController.__init__(self)
         self._board = board
         self._bank = bank
         self._values = 0x00
         self._dirty = True
+        self._devices = []
 
-    def getOut(self, pin):
-        return OutGameDevice(self, 1 << pin)
+    def getHwDevices(self):
+        return self._devices
 
-    def getIn(self, pin):
-        return InGameDevice(self, 1 << pin)
+    def getOut(self, name, pin):
+        device = PowerDriver16OutGameDevice(name, self, 1 << pin)
+        self._devices.append(device)
+        return device
 
-    def activate(self, pin):
+    def activate(self, device):
         self._dirty = True
-        self._values |= pin
+        self._values |= device.pin
 
-    def deactivate(self, pin):
+    def deactivate(self, device):
         self._dirty = True
-        self._values &= (~pin)
-
-    def toggle(self, pin):
-        self._dirty = True
-        self._values ^= pin
+        self._values &= (~device.pin)
 
     def sync(self):
         if(self._dirty):
-            data = "> 0x{0:02X} 0x{1:02X} 0x{2:02X}".format(
-                self._board, self._bank, self._values)
-            print(data)
             if ser:
                 ser.write([self._board, self._bank, self._values])
         self._dirty = False
 
     def __str__(self):
-        return "[{0} {1}] [ {2:08b} ]".format(self._board, "B" if self._bank else "A", self._values)
+        return "[{0} {1}] [ {2:08b} ]".format(
+            self._board, "B" if self._bank else "A", self._values)
+
+
+class PowerDriver16OutGameDevice(OutGameDevice):
+
+    def __init__(self, name, hwgamedevice, pin):
+        OutGameDevice.__init__(self, name, hwgamedevice)
+        self.pin = pin
