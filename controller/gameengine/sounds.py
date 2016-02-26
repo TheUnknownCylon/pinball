@@ -16,11 +16,11 @@ class SoundFX():
 class SoundManager():
 
     def __init__(self):
-        pygame.mixer.pre_init(48000, -16, 2, 1024)
+        pygame.mixer.pre_init(44100, -16, 2, 1024)
         pygame.init()
 
     def playbg(self, sfile):
-        print("Changing background song %d", sfile)
+        print("Changing background song {}", sfile)
         pygame.mixer.music.load(sfile)
         pygame.mixer.music.play()
 

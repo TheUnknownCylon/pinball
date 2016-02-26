@@ -1,11 +1,12 @@
-
 from gamedevices import GameTimer
 
 
 class MyGame():
 
-    def __init__(self, flipper_l, flipper_r, slingshot_l, slingshort_r,
-                 inlane, led_1, led_2, led_3):
+    def __init__(self, soundmanager, flipper_l, flipper_r, slingshot_l,
+                 slingshort_r, inlane, led_1, led_2, led_3):
+
+        self.soundmanager = soundmanager
 
         self.leds = [led_1, led_2, led_3]
         self.active = led_1
@@ -33,6 +34,7 @@ class MyGame():
 
     def ball_in_game(self):
         print(" GAME: BALL IN GAME")
+        self.soundmanager.playbg("/home/remco/media/main.wav")
 
     def ball_launch_fail(self):
         print(" GAME: BALL LAUNCH FAILED")

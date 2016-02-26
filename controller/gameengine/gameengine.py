@@ -28,7 +28,7 @@ class HardwareEngine():
 
 class GameEngine():
 
-    def __init__(self, hwcontrollers, gamelogic):
+    def __init__(self, hwcontrollers, soundmanager, gamelogic):
         self._fps = FPS()
         self._hwengine = HardwareEngine(hwcontrollers)
         self._gamelogic = gamelogic

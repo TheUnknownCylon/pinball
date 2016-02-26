@@ -32,6 +32,7 @@ Construction of a game application:
 """
 
 from gameengine import GameEngine
+from gameengine.sounds import SoundManager
 from controllerdevices import PowerDriver16, RaspberryPi, Mcp23017
 from gamedevices import Flipper, Slingshot, Led, Inlane
 from gamelogic import MyGame
@@ -84,10 +85,11 @@ inlane = Inlane(inlane_detect_upper, inlane_detect_lower)
 ######################################
 # 4) Instantiate game logic
 #
-game = MyGame(flipperL, flipperR, slingshotL, slingshotR, inlane, led_1,
-              led_2, led_3)
+soundmanager = SoundManager()
+game = MyGame(soundmanager, flipperL, flipperR, slingshotL, slingshotR, inlane,
+              led_1, led_2, led_3)
 
 # When invoked directly from the CLI, run the pinball engine as main process
 if __name__ == "__main__":
-    ge = GameEngine(controllers, game)
+    ge = GameEngine(controllers, soundmanager, game)
     ge.run()
