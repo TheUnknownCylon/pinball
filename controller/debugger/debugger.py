@@ -25,23 +25,29 @@ class DebugEngine():
     def make_gui(self):
         return tornado.web.Application([
             (r"/", PinballPage),
-            (r"/websocket", DebugWebSocket,
-             {"devices": self._devices, "gamelogic": self._gamelogic})
+            (r"/websocket", DebugWebSocket, {
+                "devices": self._devices,
+                "gamelogic": self._gamelogic,
+                "fps": self._gameengine._fps
+              })
         ], debug=True)
 
 
 class DebugWebSocket(tornado.websocket.WebSocketHandler):
+    """Communication channel with the webpage"""
 
-    def initialize(self, devices, gamelogic):
+    def initialize(self, devices, gamelogic, fps):
         self._devices = devices
         self._gamelogic = gamelogic
+        fps.observe(self, self._fpsupdate)
 
     def _deviceupdate(self, d, *args, **kwargs):
         """Sends device status updates to the GUI"""
         self.write_message("D:{}:{}:{}".format(
             1 if d.isActivated() else 0, id(d), d.getName()))
 
-    """Communication channel with the webpage"""
+    def _fpsupdate(self, device, fps):
+        self.write_message("FPS:{}".format(fps))
 
     def open(self):
         print("DEBUGGER: WebSocket opened")

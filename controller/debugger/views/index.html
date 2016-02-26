@@ -10,11 +10,8 @@
     </head>
     <body class="container">
         <h1>Remco's pinball</h2>
-        <!--Usage:-->
-        <!--<dl class="dl-horizontal">-->
-            <!--<dt><kbd>SHIFT-left</kbd></dt><dd>left flipper</dd>-->
-            <!--<dt><kbd>SHIFT-right</kbd></dt><dd>right flipper</dd>-->
-        <!--</dl>-->
+
+        <span id="fps">-</span> FPS
 
         <h2>Hardware devices</h2>
         <div id="devices"></div>
@@ -70,47 +67,30 @@
             ws.onmessage = function (evt) {
                 console.log(evt.data);
 				var data = evt.data.split(":");
-				var status = data[1];
-				var hwid = data[2];
-				var name = data[3];
+                var action = data[0];
 
-                var field = $("."+hwid);
-				if(field.length == 0) {
-					$("#devices").append('<div class="'+hwid+'">'+name+'</div>');
-                    sortUsingNestedText($("#devices"), "div");
-					field = $("."+hwid);
-				}
-                field.html(name);
-				if(status == "1") {
-					hwactivate(hwid);
-				} else {
-					hwdeactivate(hwid);
-				}
+                if(action == 'D') {
+                    var status = data[1];
+                    var hwid = data[2];
+                    var name = data[3];
+
+                    var field = $("."+hwid);
+                    if(field.length == 0) {
+                        $("#devices").append('<div class="'+hwid+'">'+name+'</div>');
+                        sortUsingNestedText($("#devices"), "div");
+                        field = $("."+hwid);
+                    }
+                    field.html(name);
+                    if(status == "1") {
+                        hwactivate(hwid);
+                    } else {
+                        hwdeactivate(hwid);
+                    }
+                } else if(action == 'FPS') {
+                    var fps = data[1];
+                    $("#fps").html(fps);
+                }
             };
-
-            /* ************************************************************** */
-            var KEYCODE_SHIFT = 16;
-            function handleKeyDown(e) {
-                if(e.keyCode == KEYCODE_SHIFT) {
-                    if (event.location === KeyboardEvent.DOM_KEY_LOCATION_LEFT){
-                        ws.send("LD");
-                    } else if (event.location === KeyboardEvent.DOM_KEY_LOCATION_RIGHT){
-                        ws.send("RD");
-                    }
-                }
-            }
-            function handleKeyUp(e) {
-                if(e.keyCode == KEYCODE_SHIFT) {
-                    if (event.location === KeyboardEvent.DOM_KEY_LOCATION_LEFT){
-                        ws.send("LU");
-                    } else if (event.location === KeyboardEvent.DOM_KEY_LOCATION_RIGHT){
-                        ws.send("RU");
-                    }
-                }
-            }
-
-            document.onkeydown = handleKeyDown;
-            document.onkeyup = handleKeyUp;
         });
         </script>
     </body>
