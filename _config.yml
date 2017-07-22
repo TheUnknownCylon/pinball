@@ -1,0 +1,11 @@
+# Site settings
+title: My custom pinball adventure
+description: Building my very own pinball machine.
+github_username:  theunknowncylon
+
+timezone: Europe/Amsterdam
+
+# Build settings
+markdown: kramdown
+highlighter: pygments
+theme: minima
