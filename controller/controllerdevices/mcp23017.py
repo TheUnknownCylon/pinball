@@ -19,7 +19,7 @@ class Mcp23017(HWController):
     # Pin layout
     Placed here for reference, not to replace the original documentation
 
-                  _____  _____
+                  ____   _____
     GPB0 <--> 01  |   \_/    |  28 <--> GPA7
     GPB1 <--> 02  |          |  27 <--> GPA6
     GPB2 <--> 03  |          |  26 <--> GPA5
@@ -123,7 +123,6 @@ class Mcp23017(HWController):
         return device
 
     def sync(self):
-
         # Set ouptut devices bank A
         if self._dirty[self.BANKA]:
             self._dirty[self.BANKA] = False

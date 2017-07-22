@@ -37,8 +37,7 @@ class RaspberryPi(HWController):
             raise Exception("Pin was already instanciated!")
 
         # Create device, default off
-        self._devices[pin] = (RaspberryPiInGameDevice(
-            name, self, pin, **kwargs), 0)
+        self._devices[pin] = (RaspberryPiInGameDevice(name, self, pin, **kwargs), 0)
         GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         return self._devices[pin][0]
 
