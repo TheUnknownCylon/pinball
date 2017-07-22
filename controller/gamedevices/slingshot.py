@@ -7,7 +7,6 @@ class Slingshot(GameDevice):
 
     def __init__(self, detector, coil):
         GameDevice.__init__(self)
-        self._detector = detector
         self._coil = coil
         self._coiltimer = GameTimer(0.02)
         self._lastshot = time()
@@ -16,6 +15,9 @@ class Slingshot(GameDevice):
         self._coiltimer.observe(self, self.deactivate)
 
     def slingshotDetect(self, cause, deviceState=None):
+        if not deviceState:
+            return
+
         if time() - self._lastshot < 0.2:
             print("> SLINGSHOT Fired again too short after another fire event")
             return
