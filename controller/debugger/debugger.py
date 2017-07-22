@@ -43,11 +43,17 @@ class DebugWebSocket(tornado.websocket.WebSocketHandler):
 
     def _deviceupdate(self, d, *args, **kwargs):
         """Sends device status updates to the GUI"""
-        self.write_message("D:{}:{}:{}".format(
-            1 if d.isActivated() else 0, id(d), d.getName()))
+        try:
+            self.write_message("D:{}:{}:{}".format(
+                1 if d.isActivated() else 0, id(d), d.getName()))
+        except:
+            pass
 
     def _fpsupdate(self, device, fps):
-        self.write_message("FPS:{}".format(fps))
+        try:
+            self.write_message("FPS:{}".format(fps))
+        except:
+            pass
 
     def open(self):
         print("DEBUGGER: WebSocket opened")
@@ -57,7 +63,7 @@ class DebugWebSocket(tornado.websocket.WebSocketHandler):
 
     def on_close(self):
         print("DEBUGGER: WebSocket closed")
-        for d in self.devices:
+        for d in self._devices:
             d.deobserve(self, self._deviceupdate)
 
 

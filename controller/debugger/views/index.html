@@ -1,97 +1,113 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
-        <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
-        <script src="//code.jquery.com/ui/1.11.3/jquery-ui.min.js"></script>
-        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
-        <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-    </head>
-    <body class="container">
-        <h1>Remco's pinball</h2>
 
-        <span id="fps">-</span> FPS
+<head>
+  <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+  <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+  <script src="//code.jquery.com/ui/1.11.3/jquery-ui.min.js"></script>
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+</head>
 
-        <h2>Hardware devices</h2>
-        <div id="devices"></div>
-        <script type="text/javascript">
-        $(function() {
-            function sortUsingNestedText(parent, childSelector) {
-                var items = parent.children(childSelector).sort(function(a, b) {
-                    var vA = $(a).text();
-                    var vB = $(b).text();
-                    return (vA < vB) ? -1 : (vA > vB) ? 1 : 0;
-                });
-                parent.append(items);
+<body class="container">
+  <h1>Remco's pinball</h2>
+
+    <span id="fps">-</span> FPS
+
+    <h2>Hardware devices</h2>
+    <div id="devices"></div>
+    <script type="text/javascript">
+      $(function() {
+        function sortUsingNestedText(parent, childSelector) {
+          var items = parent.children(childSelector).sort(function(a, b) {
+            var vA = $(a).text();
+            var vB = $(b).text();
+            return (vA < vB) ? -1 : (vA > vB) ? 1 : 0;
+          });
+          parent.append(items);
+        }
+
+        function hwactivate(hwid) {
+          $("." + hwid).css('background-color', '#00FF00');
+          $("." + hwid).attr('active', 1);
+        };
+
+        function hwdeactivate(hwid) {
+          e = $("." + hwid);
+          e.removeAttr('active');
+          e.css('background-color', '#FFFF00');
+          e.attr('fade', 0);
+          hh(e);
+        };
+
+        /**
+         * Simple function that fades the background of an elemnt
+         * from yellow to white in 255 / 16 s. Requires that the elemnt has
+         * an attribute fade with a value in the range [0, 255].
+         * Fade animation stops when the element has an attribute active.
+         */
+        function hh(e) {
+          estatus = e.attr('active');
+          if (typeof estatus !== typeof undefined && estatus !== false) {
+            e.css('background-color', '#00FF00');
+            return;
+          } else {
+            bg = Math.min(255, parseInt(e.attr('fade')) + 16);
+            e.css('background-color', 'rgb(255,255,' + bg + ')');
+            e.attr('fade', bg)
+            if (bg < 255) {
+              setTimeout(function() {
+                hh(e)
+              }, 100);
             }
+          }
+        };
 
-			function hwactivate(hwid) {
-				$("."+hwid).css('background-color', '#00FF00');
-				$("."+hwid).attr('active', 1);
-			};
+        function start() {
+          /* ************************************************************** */
+          var ws = new WebSocket("ws://192.168.0.180:8888/websocket");
+          ws.onopen = function() {
+            $("#devices").html("")
+          };
+          ws.onmessage = function(evt) {
+            console.log(evt.data);
+            var data = evt.data.split(":");
+            var action = data[0];
 
-			function hwdeactivate(hwid) {
-				e = $("." + hwid);
-				e.removeAttr('active');
-				e.css('background-color', '#FFFF00');
-				e.attr('fade', 0);
-				hh(e);
-			};
+            if (action == 'D') {
+              var status = data[1];
+              var hwid = data[2];
+              var name = data[3];
 
-			/**
-			 * Simple function that fades the background of an elemnt
-			 * from yellow to white in 255 / 16 s. Requires that the elemnt has
-			 * an attribute fade with a value in the range [0, 255].
-			 * Fade animation stops when the element has an attribute active.
-			 */
-			function hh(e) {
-				estatus = e.attr('active');
-				if(typeof estatus !== typeof undefined && estatus !== false) {
-					e.css('background-color', '#00FF00');
-					return;
-				} else {
-					bg = Math.min(255, parseInt(e.attr('fade')) + 16);
-					e.css('background-color', 'rgb(255,255,'+bg+')');
-					e.attr('fade', bg)
-					if(bg < 255) {
-						setTimeout(function(){hh(e)}, 100);
-					}
-				}
-			};
+              var field = $("." + hwid);
+              if (field.length == 0) {
+                $("#devices").append('<div class="' + hwid + '">' + name + '</div>');
+                sortUsingNestedText($("#devices"), "div");
+                field = $("." + hwid);
+              }
+              field.html(name);
+              if (status == "1") {
+                hwactivate(hwid);
+              } else {
+                hwdeactivate(hwid);
+              }
+            } else if (action == 'FPS') {
+              var fps = data[1];
+              $("#fps").html(fps);
+            }
+          };
+          // register restart
+          ws.onclose = function() {
+            $("#devices").html("Reconnecting...")
+            setTimeout(function() {
+              start();
+            }, 500);
+          }
+        };
+        start();
+      });
+    </script>
+</body>
 
-
-            /* ************************************************************** */
-            var ws = new WebSocket("ws://alarmpi:8888/websocket");
-            ws.onopen = function() {};
-            ws.onmessage = function (evt) {
-                console.log(evt.data);
-				var data = evt.data.split(":");
-                var action = data[0];
-
-                if(action == 'D') {
-                    var status = data[1];
-                    var hwid = data[2];
-                    var name = data[3];
-
-                    var field = $("."+hwid);
-                    if(field.length == 0) {
-                        $("#devices").append('<div class="'+hwid+'">'+name+'</div>');
-                        sortUsingNestedText($("#devices"), "div");
-                        field = $("."+hwid);
-                    }
-                    field.html(name);
-                    if(status == "1") {
-                        hwactivate(hwid);
-                    } else {
-                        hwdeactivate(hwid);
-                    }
-                } else if(action == 'FPS') {
-                    var fps = data[1];
-                    $("#fps").html(fps);
-                }
-            };
-        });
-        </script>
-    </body>
 </html>
