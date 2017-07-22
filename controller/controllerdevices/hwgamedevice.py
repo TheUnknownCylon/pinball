@@ -1,4 +1,3 @@
-
 from e_observable import Observable
 
 
@@ -17,6 +16,9 @@ class GameDevice(Observable):
 
     def getName(self):
         return self._name
+
+    def __str__(self):
+        return "{}:{}".format(type(self).__name__, self._name)
 
 
 class OutGameDevice(GameDevice):
