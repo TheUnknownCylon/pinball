@@ -2,13 +2,8 @@ import sys
 from .hwgamedevice import InGameDevice
 from .hwcontroller import HWController
 
-try:
-    import RPi.GPIO as GPIO
-except:
-    print("No Raspberry Pi GPIO available. Running the code from a pi?!?")
-    sys.exit()
+import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
-
 
 class RaspberryPiInGameDevice(InGameDevice):
 

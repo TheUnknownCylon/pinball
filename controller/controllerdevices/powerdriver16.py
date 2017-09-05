@@ -1,6 +1,9 @@
+import os
+import serial
 
 from .hwgamedevice import OutGameDevice
 from .hwcontroller import HWController
+
 
 """
 PowerDriver16
@@ -23,14 +26,14 @@ Notes:
     - Requires write-permissions to /dev/ttyAMA0
 """
 
-ser = None
-try:
-    import serial
-    ser = serial.Serial('/dev/ttyAMA0', 9600)
-    ser.write("MY MAGIC PINBALL\r\n".encode())
-except Exception as e:
-    print(e)
-    print("NO SERIAL DEVICE FOUND! PowerDriver16 will not work!")
+serial_device_file = '/dev/ttyAMA0'
+if not os.path.exists(serial_device_file):
+    raise RuntimeError("""Serial device "{}" not found, PowerDriver16 will not work.""".format(serial_device_file))
+
+
+# Initialize Communication
+ser = serial.Serial('/dev/ttyAMA0', 9600)
+ser.write("MY MAGIC PINBALL\r\n".encode())
 
 
 class PowerDriver16(HWController):
@@ -61,8 +64,7 @@ class PowerDriver16(HWController):
 
     def sync(self):
         if(self._dirty):
-            if ser:
-                ser.write([self._board, self._bank, self._values])
+            ser.write([self._board, self._bank, self._values])
         self._dirty = False
 
     def __str__(self):
