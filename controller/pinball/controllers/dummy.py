@@ -1,5 +1,5 @@
-from .hwgamedevice import OutGameDevice, InGameDevice
-from .hwcontroller import HWController
+from pinball.controllers.hwgamedevice import OutGameDevice, InGameDevice
+from pinball.controllers.hwcontroller import HWController
 
 
 class DummyController(HWController):

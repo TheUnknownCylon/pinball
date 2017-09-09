@@ -1,8 +1,8 @@
 import os
 import serial
 
-from .hwgamedevice import OutGameDevice
-from .hwcontroller import HWController
+from pinball.controllers.hwgamedevice import OutGameDevice
+from pinball.controllers.hwcontroller import HWController
 
 
 """

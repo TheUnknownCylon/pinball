@@ -1,6 +1,7 @@
-from .gamedevice import GameDevice
-from e_observable import Observable
 import threading
+
+from pinball.gamedevices.gamedevice import GameDevice
+from pinball.e_observable import Observable
 
 
 class GameTimer(GameDevice, Observable):

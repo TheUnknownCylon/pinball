@@ -1,8 +1,8 @@
-
-from .fps import FPS
-import e_observable
 import time
-from debugger.debugger import DebugEngine
+import threading
+
+import pinball.e_observable as e_observable
+from pinball.debugger import DebugEngine
 
 
 class HardwareEngine():
@@ -60,3 +60,36 @@ class GameEngine():
         #      When the sleep timer is very low, no one will
         #      ever notice the difference.
         self._hwengine.tick()
+
+
+class FPS(e_observable.Observable):
+
+    """
+    Simple class that can be used to keep track of the games frames per
+    second. Each time a game frame is over, the tick() method must be issued.
+
+    The FPS informs its FPS every second to its observers (using the game
+    engine internal inform mechanism)
+    """
+
+    def __init__(self):
+        e_observable.Observable.__init__(self)
+        self._frames = 0
+        self._lock = threading.Lock()
+
+        # Start the FPS thread
+        self._printFPS()
+
+    def tick(self):
+        with self._lock:
+            self._frames += 1
+
+    def _printFPS(self):
+        t = threading.Timer(1.0, self._printFPS)
+        t.setDaemon(True)
+        t.start()
+        global frames
+        with self._lock:
+            fps = self._frames
+            self._frames = 0
+            self.inform(fps)

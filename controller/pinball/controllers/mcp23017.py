@@ -1,7 +1,7 @@
 import smbus
 
-from .hwgamedevice import OutGameDevice, InGameDevice
-from .hwcontroller import HWController
+from pinball.controllers.hwgamedevice import OutGameDevice, InGameDevice
+from pinball.controllers.hwcontroller import HWController
 
 
 class Mcp23017(HWController):

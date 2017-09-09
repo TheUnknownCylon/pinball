@@ -1,6 +1,7 @@
-from .gamedevice import GameDevice
-from .timer import GameTimer
 from time import time
+
+from pinball.gamedevices.gamedevice import GameDevice
+from pinball.gamedevices.timer import GameTimer
 
 
 class Slingshot(GameDevice):

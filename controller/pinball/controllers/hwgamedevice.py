@@ -1,4 +1,4 @@
-from e_observable import Observable
+from pinball.e_observable import Observable
 
 
 class GameDevice(Observable):

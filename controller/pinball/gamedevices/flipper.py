@@ -1,5 +1,5 @@
-from .gamedevice import GameDevice
-from .timer import GameTimer
+from pinball.gamedevices.gamedevice import GameDevice
+from pinball.gamedevices.timer import GameTimer
 
 BLOCK = 0
 UNBLOCK = 0

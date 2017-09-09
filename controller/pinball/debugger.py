@@ -71,4 +71,4 @@ class PinballPage(tornado.web.RequestHandler):
     """Serves the Pinball GUI page"""
 
     def get(self):
-        self.render("views/index.html")
+        self.render("debugger/views/index.html")

@@ -1,5 +1,5 @@
 
-from gamedevices import GameTimer
+from pinball.gamedevices.timer import GameTimer
 
 
 class MyGame():

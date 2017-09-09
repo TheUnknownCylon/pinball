@@ -1,9 +1,9 @@
-import sys
-from .hwgamedevice import InGameDevice
-from .hwcontroller import HWController
+from pinball.controllers.hwgamedevice import InGameDevice
+from pinball.controllers.hwcontroller import HWController
 
 import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
+
 
 class RaspberryPiInGameDevice(InGameDevice):
 
@@ -32,7 +32,8 @@ class RaspberryPi(HWController):
             raise Exception("Pin was already instanciated!")
 
         # Create device, default off
-        self._devices[pin] = (RaspberryPiInGameDevice(name, self, pin, **kwargs), 0)
+        self._devices[pin] = (RaspberryPiInGameDevice(
+            name, self, pin, **kwargs), 0)
         GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         return self._devices[pin][0]
 

@@ -1,4 +1,4 @@
-from .gamedevice import GameDevice
+from pinball.gamedevices.gamedevice import GameDevice
 
 
 class Led(GameDevice):
