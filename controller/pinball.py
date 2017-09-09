@@ -31,9 +31,15 @@ Construction of a game application:
 
 """
 
-from gameengine import GameEngine
-from controllerdevices import PowerDriver16, RaspberryPi, Mcp23017
-from gamedevices import Flipper, Slingshot, Led, Inlane
+from pinball.gameengine import GameEngine
+from pinball.controllers.powerdriver16 import PowerDriver16
+from pinball.controllers.mcp23017 import Mcp23017
+from pinball.controllers.raspberrypi import RaspberryPi
+from pinball.gamedevices.flipper import Flipper
+from pinball.gamedevices.slingshot import Slingshot
+from pinball.gamedevices.led import Led
+from pinball.gamedevices.inlane import Inlane
+
 from gamelogic import MyGame
 
 ##################################
