@@ -1,7 +1,10 @@
+import logging
 from time import time
 
 from pinball.gamedevices.gamedevice import GameDevice
 from pinball.gamedevices.timer import GameTimer
+
+logger = logging.getLogger(__name__)
 
 
 class Slingshot(GameDevice):
@@ -20,14 +23,14 @@ class Slingshot(GameDevice):
             return
 
         if time() - self._lastshot < 0.2:
-            print("> SLINGSHOT Fired again too short after another fire event")
+            logging.info("slingshot fired again too short after another fire event")
             return
 
         self._lastshot = time()
         self._coil.set(True)
         self._coiltimer.restart()
-        print("> SLINGSHOT FIRE")
+        logging.info("slingshot fire")
 
     def deactivate(self, cause, deviceState=None):
         self._coil.set(False)
-        print("> SLINGSHOT LOW")
+        logging.info("slingshot low")

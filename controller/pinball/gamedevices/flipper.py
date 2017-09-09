@@ -1,9 +1,13 @@
+import logging
+
 from pinball.gamedevices.gamedevice import GameDevice
 from pinball.gamedevices.timer import GameTimer
 
 BLOCK = 0
 UNBLOCK = 0
 EOSTIMEOUT = 1
+
+logger = logging.getLogger(__name__)
 
 
 class Flipperstate:
@@ -62,7 +66,7 @@ class Flipper(GameDevice):
             elif cause == self._eos and deviceState:
                 state = Flipperstate.HOLD
             elif cause == self._eostimer:
-                print("WARNING: EOS NOT DETECTED, ASSUMING EOS HIGH")
+                logger.error("eos not detected, assuming eos high")
                 state = Flipperstate.EOSHOLD
 
         elif state == Flipperstate.HOLD:
@@ -75,7 +79,7 @@ class Flipper(GameDevice):
             if cause == self._button and not deviceState:
                 state = Flipperstate.LOW
             elif cause == self._eos and deviceState:
-                print("(Finally!) GOT EOS")
+                logger.debug("(finally!) got eos")
                 state = Flipperstate.HOLD
 
         elif state == Flipperstate.BLOCKED:

@@ -1,8 +1,11 @@
+import logging
 import tornado
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
 import threading
+
+logger = logging.getLogger(__name__)
 
 
 class DebugEngine():
@@ -19,7 +22,7 @@ class DebugEngine():
 
         t = threading.Thread(target=tornado.ioloop.IOLoop.current().start)
         t.daemon = True
-        print("DEBUGGER: Started, point your browser to localhost:8888")
+        logger.info("debugger started at http://localhost:8888")
         t.start()
 
     def make_gui(self):
@@ -56,13 +59,13 @@ class DebugWebSocket(tornado.websocket.WebSocketHandler):
             pass
 
     def open(self):
-        print("DEBUGGER: WebSocket opened")
+        logger.debug("WebSocket opened")
         for d in self._devices:
             d.observe(self, self._deviceupdate)
             self._deviceupdate(d)
 
     def on_close(self):
-        print("DEBUGGER: WebSocket closed")
+        logger.debug("WebSocket closed")
         for d in self._devices:
             d.deobserve(self, self._deviceupdate)
 

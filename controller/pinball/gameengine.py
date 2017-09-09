@@ -1,9 +1,11 @@
+import logging
 import time
 import threading
 
 import pinball.e_observable as e_observable
 from pinball.debugger import DebugEngine
 
+logger = logging.getLogger(__name__)
 
 class HardwareEngine():
 
@@ -36,7 +38,7 @@ class GameEngine():
     def run(self):
         self._debugger.start()
         e_observable.observerEvents.clear()
-        print("STARTING THE GAME")
+        logger.info("game started")
 
         while True:
             self.tick()

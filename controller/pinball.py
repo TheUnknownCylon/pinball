@@ -30,6 +30,7 @@ Construction of a game application:
     B) 'Enjoy' :)
 
 """
+import logging
 
 from pinball.gameengine import GameEngine
 from pinball.controllers.powerdriver16 import PowerDriver16
@@ -95,5 +96,12 @@ game = MyGame(flipperL, flipperR, slingshotL, slingshotR, inlane, led_1,
 
 # When invoked directly from the CLI, run the pinball engine as main process
 if __name__ == "__main__":
+    logger = logging.getLogger()
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('%(asctime)s %(name)-20s %(levelname)-8s %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.DEBUG)
+
     ge = GameEngine(controllers, game)
     ge.run()

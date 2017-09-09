@@ -1,5 +1,8 @@
+import logging
 
 from pinball.gamedevices.timer import GameTimer
+
+logger = logging.getLogger(__name__)
 
 
 class MyGame():
@@ -29,13 +32,13 @@ class MyGame():
         self.active.on()
 
     def ball_launch(self):
-        print(" GAME: BALL LAUNCH (JEAH!)")
+        logger.info(" GAME: BALL LAUNCH (JEAH!)")
 
     def ball_in_game(self):
-        print(" GAME: BALL IN GAME")
+        logger.info(" GAME: BALL IN GAME")
 
     def ball_launch_fail(self):
-        print(" GAME: BALL LAUNCH FAILED")
+        logger.info(" GAME: BALL LAUNCH FAILED")
 
     def ball_returns(self):
-        print(" GAME: THE BALL IS BACK IN THE INLANE")
+        logger.info(" GAME: THE BALL IS BACK IN THE INLANE")
