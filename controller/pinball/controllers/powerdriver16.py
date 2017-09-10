@@ -9,11 +9,9 @@ from pinball.controllers.hwcontroller import HWController
 PowerDriver16
 
 Notes:
-    - Only works when directly executed from a RaspberryPi
+    - Communication: serial bus --> Arduino --> Powerdriver
 
-    - Communication: RPI --> Arduino --> Powerdriver
-
-    - Application to be executed on the Raspbery can be found in
+    - Application to be executed on the Arduino can be found in
       projectroot/powerdriver_16_arduino/
 
     - Communication protocol works when:
@@ -22,58 +20,63 @@ Notes:
        3) Starting the pinball application
 
        , but is also not yet properly implemented debugged.
-
-    - Requires write-permissions to /dev/ttyAMA0
 """
-
-serial_device_file = '/dev/ttyAMA0'
-if not os.path.exists(serial_device_file):
-    raise RuntimeError("""Serial device "{}" not found, PowerDriver16 will not work.""".format(serial_device_file))
-
-
-# Initialize Communication
-ser = serial.Serial('/dev/ttyAMA0', 9600)
-ser.write("MY MAGIC PINBALL\r\n".encode())
 
 
 class PowerDriver16(HWController):
 
-    def __init__(self, board, bank):
+    def __init__(self, deviceAddress):
         HWController.__init__(self)
-        self._board = board
-        self._bank = bank
-        self._values = 0x00
-        self._dirty = True
+
+        if not os.path.exists(deviceAddress):
+            raise RuntimeError("""Serial device "{}" not found, PowerDriver16 will not work.""".format(serial_device_file))
+
+        # Initialize Communication
+        self._serial = serial.Serial(deviceAddress, 9600)
+        self._serial.write("MY MAGIC PINBALL\r\n".encode())
+
+        self._values = {}
+        self._dirtyBanks = set()
         self._devices = []
 
     def getHwDevices(self):
         return self._devices
 
-    def getOut(self, name, pin):
-        device = PowerDriver16OutGameDevice(name, self, 1 << pin)
+    def getOut(self, name, board, bank, pin):
+        if (board, bank) not in self._values:
+            self._values[(board, bank)] = 0x00
+        self._dirtyBanks.add((board, bank))
+
+        device = PowerDriver16OutGameDevice(name, self, board, bank, 1 << pin)
         self._devices.append(device)
         return device
 
     def activate(self, device):
-        self._dirty = True
-        self._values |= device.pin
+        board = device.board
+        bank = device.bank
+        self._dirtyBanks.add((board, bank))
+        self._values[(board, bank)] |= device.pin
 
     def deactivate(self, device):
-        self._dirty = True
-        self._values &= (~device.pin)
+        board = device.board
+        bank = device.bank
+        self._dirtyBanks.add((board, bank))
+        self._values[(board, bank)] &= (~device.pin)
 
     def sync(self):
-        if(self._dirty):
-            ser.write([self._board, self._bank, self._values])
-        self._dirty = False
+        for (board, bank) in self._dirtyBanks:
+            self._serial.write([board, bank, self._values[(board, bank)]])
+        self._dirtyBanks.clear()
 
-    def __str__(self):
-        return "[{0} {1}] [ {2:08b} ]".format(
-            self._board, "B" if self._bank else "A", self._values)
+    # def __str__(self):
+    #     return "[{0} {1}] [ {2:08b} ]".format(
+    #         self._board, "B" if self._bank else "A", self._values)
 
 
 class PowerDriver16OutGameDevice(OutGameDevice):
 
-    def __init__(self, name, hwgamedevice, pin):
+    def __init__(self, name, hwgamedevice, board, bank, pin):
         OutGameDevice.__init__(self, name, hwgamedevice)
+        self.board = board
+        self.bank = bank
         self.pin = pin

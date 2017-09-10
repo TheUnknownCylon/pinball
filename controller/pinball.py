@@ -46,26 +46,26 @@ from gamelogic import MyGame
 ##################################
 # 1) Instantiate hardware controllers
 raspberry = RaspberryPi()
-bank0A = PowerDriver16(0, 0)
-bank0B = PowerDriver16(0, 1)
+powerdriver16 = PowerDriver16("/dev/ttyAMA0")
 mcp23017 = Mcp23017(0x20)
-controllers = [raspberry, bank0A, bank0B, mcp23017]
+controllers = [raspberry, powerdriver16, mcp23017]
 
 ###################################
 # 2) Instantiate devices on controllers
-flipper_L_POWER_ENERGIZED = bank0B.getOut("L Flipper coil (high)", 0)
-flipper_L_POWER_HOLD = bank0B.getOut("L Flipper coil (hold)", 1)
+BANKB = 1
+flipper_L_POWER_ENERGIZED = powerdriver16.getOut("L Flipper coil (high)", 0, BANKB, 0)
+flipper_L_POWER_HOLD = powerdriver16.getOut("L Flipper coil (hold)", 0, BANKB, 1)
 flipper_L_EOS = raspberry.getIn("L Flipper EOS", -1)
-flipper_R_POWER_ENERGIZED = bank0B.getOut("R Flipper coil (high)", 2)
-flipper_R_POWER_HOLD = bank0B.getOut("R Flipper coil (hold)", 3)
+flipper_R_POWER_ENERGIZED = powerdriver16.getOut("R Flipper coil (high)", 0, BANKB, 2)
+flipper_R_POWER_HOLD = powerdriver16.getOut("R Flipper coil (hold)", 0, BANKB, 3)
 flipper_R_EOS = raspberry.getIn("R Flipper EOS", -1)
 flipper_L_BUTTON = raspberry.getIn("L Flipper button", 23)
 flipper_R_BUTTON = raspberry.getIn("R Flipper button", 24)
 
 slingshot_left_detect = mcp23017.getIn("L Slingshot detect", 3, 0)
-slingshot_left_coil = bank0B.getOut("L Slingshot kicker", 4)
+slingshot_left_coil = powerdriver16.getOut("L Slingshot kicker", 0, BANKB, 4)
 slingshot_right_detect = mcp23017.getIn("R Slingshot detect", 4, 0)
-slingshot_right_coil = bank0B.getOut("R Slingshot kicker", 5)
+slingshot_right_coil = powerdriver16.getOut("R Slingshot kicker", 0, BANKB, 5)
 
 inlane_detect_upper = mcp23017.getIn("Switch inlane Upper", 6, 0, inv=True)
 inlane_detect_lower = mcp23017.getIn("Switch inlane Lower", 5, 0, inv=True)
