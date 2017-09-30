@@ -138,11 +138,15 @@ class Mcp23017(HWController):
         # Load input devices bank A
         if self._indevices[self.BANKA]:
             state = self.bus.read_byte_data(self._address, self.GPIOA)
+            if state < 0:
+                state = 0
             self._parseIn(self._indevices[self.BANKA], state)
 
         # Load input devices bank B
         if self._indevices[self.BANKB]:
             state = self.bus.read_byte_data(self._address, self.GPIOB)
+            if state < 0:
+                state = 0
             self._parseIn(self._indevices[self.BANKB], state)
 
     def activate(self, device):
@@ -157,6 +161,7 @@ class Mcp23017(HWController):
         for device in devices:
             devstate = state & device.pin
             if device.oldstate != devstate:
+                print("{} {} {} {}".format(device, state, devstate, device.oldstate))
                 device.oldstate = devstate
                 device.inform(devstate)
 
