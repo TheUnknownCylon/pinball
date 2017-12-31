@@ -1,7 +1,10 @@
+import logging
 import smbus
 
 from pinball.controllers.hwgamedevice import OutGameDevice, InGameDevice
 from pinball.controllers.hwcontroller import HWController
+
+logger = logging.getLogger(__name__)
 
 
 class Mcp23017(HWController):
@@ -44,9 +47,8 @@ class Mcp23017(HWController):
      VSS: GND
      SCL: I2C clock
      SDA: I2C data
-     RESET: 3.3V in (5.5V should work as well)
-     A1,A1,A2: GND --> I2C address 0x20. Refer to datasheet for details.
-
+     RESET: always set to high, same voltage as VDD
+     A1,A1,A2: GND --> I2C address 0x20. Refer to datasheet for other configuration options.
     """
 
     # Device specific registers
@@ -56,6 +58,8 @@ class Mcp23017(HWController):
     GPIOB = 0x13    # Register for inputs (bank B)
     OLATA = 0x14    # Register for outputs (bank A)
     OLATB = 0x15    # Register for outputs (bank B)
+    GPPUBA = 0x0C   # Register for pullup config (bank A)
+    GPPUBB = 0x0D   # Register for pullup config (bank B)
 
     BANKA = 0x00    # Index in state variable :for this bank
     BANKB = 0x01
@@ -74,6 +78,9 @@ class Mcp23017(HWController):
         # Keep track of IO directions (bitmap, 1 means input)
         self._directions = [0x00, 0x00]
 
+        # Set pullup registers, no pullup by default (MCP23017 default)
+        self._pullup = [0x00, 0x00]
+
         # For bank A and B keep the input devices
         self._indevices = [[], []]
 
@@ -81,7 +88,10 @@ class Mcp23017(HWController):
         self._devices = []
 
         # Initialise by setting all values as output and set to LOW
+        self.bus.write_byte_data(self._address, self.GPPUBA, 0x00)
         self.bus.write_byte_data(self._address, self.IODIRA, 0x00)
+
+        self.bus.write_byte_data(self._address, self.GPPUBB, 0x00)
         self.bus.write_byte_data(self._address, self.IODIRB, 0x00)
         self.sync()
 
@@ -94,28 +104,35 @@ class Mcp23017(HWController):
 
         This method configures the Mcp23017 unit as well.
         @param name Name of the device
-        @param pin  Pin on the bank
+        @param pin Pin number on the bank (0..7)
         @param bank Bank identifier (use Mcp23017.BANKA or Mcp23017.BANKB)
         """
         device = Mcp23017OutGameDevice(name, self, pin, bank)
         self._devices.append(device)
         return device
 
-    def getIn(self, name, pin, bank, **kwargs):
+    def getIn(self, name, pin, bank, pullup=True, **kwargs):
         """Returns an input device object associated with the provided pin and
         bank.
 
         This method configures the Mcp23017 unit as well.
         @param name Name of the device
-        @param pin  Pin on the bank
+        @param pin Pin number on the bank (0..7)
         @param bank Bank identifier (use Mcp23017.BANKA or Mcp23017.BANKB)
+        @param pullup Configure pin as pullup
         """
-        self._directions[bank] |= pin
 
-        self.bus.write_byte_data(
-            self._address, self.IODIRA, self._directions[self.BANKA])
-        self.bus.write_byte_data(
-            self._address, self.IODIRB, self._directions[self.BANKB])
+        # register pin direction in bank bitmap
+        self._directions[bank] |= (1 << pin)
+        if pullup:
+            self._pullup[bank] |= (1 << pin)
+
+        self.bus.write_byte_data(self._address, self.GPPUBA, self._pullup[self.BANKA])
+        self.bus.write_byte_data(self._address, self.GPPUBB, self._pullup[self.BANKB])
+
+        # Update all direction registers on the device
+        self.bus.write_byte_data(self._address, self.IODIRA, self._directions[self.BANKA])
+        self.bus.write_byte_data(self._address, self.IODIRB, self._directions[self.BANKB])
 
         device = Mcp23017InGameDevice(name, self, pin, bank, **kwargs)
         self._indevices[bank].append(device)
@@ -126,14 +143,14 @@ class Mcp23017(HWController):
         # Set ouptut devices bank A
         if self._dirty[self.BANKA]:
             self._dirty[self.BANKA] = False
-            self.bus.write_byte_data(
-                self._address, self.OLATA, self._state[self.BANKA])
+            logger.debug("0x{:02X} - set OLATA: 0x{:02X}".format(self._address, self._state[self.BANKA]))
+            self.bus.write_byte_data(self._address, self.OLATA, self._state[self.BANKA])
 
         # Set ouptut devices bank B
         if self._dirty[self.BANKB]:
             self._dirty[self.BANKB] = False
-            self.bus.write_byte_data(
-                self._address, self.OLATB, self._state[self.BANKB])
+            logger.debug("0x{:02X} - set OLATB 0x{:02X}".format(self._address, self._state[self.BANKB]))
+            self.bus.write_byte_data(self._address, self.OLATB, self._state[self.BANKB])
 
         # Load input devices bank A
         if self._indevices[self.BANKA]:
@@ -161,7 +178,7 @@ class Mcp23017(HWController):
         for device in devices:
             devstate = state & device.pin
             if device.oldstate != devstate:
-                print("{} {} {} {}".format(device, state, devstate, device.oldstate))
+                logger.debug("0x{:02X} - {} input changed 0b{:08b} 0b{:08b} 0b{:08b}".format(self._address, device, state, devstate, device.oldstate))
                 device.oldstate = devstate
                 device.inform(devstate)
 
