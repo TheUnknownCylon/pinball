@@ -7,6 +7,7 @@ from pinball.debugger import DebugEngine
 
 logger = logging.getLogger(__name__)
 
+
 class HardwareEngine():
 
     def __init__(self, hwcontrollers):
@@ -41,6 +42,7 @@ class GameEngine():
         logger.info("game started")
 
         while True:
+            # Improve code here to get a stable FPS
             self.tick()
             time.sleep(0.002)
             self._fps.tick()
@@ -90,7 +92,7 @@ class FPS(e_observable.Observable):
         t = threading.Timer(1.0, self._printFPS)
         t.setDaemon(True)
         t.start()
-        global frames
+
         with self._lock:
             fps = self._frames
             self._frames = 0

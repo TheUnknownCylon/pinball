@@ -32,7 +32,7 @@ Construction of a game application:
 """
 import logging
 
-from pinball.gameengine import GameEngine
+from pinball.gameengine.gameengine import GameEngine
 from pinball.controllers.powerdriver16 import PowerDriver16
 from pinball.controllers.mcp23017 import Mcp23017
 from pinball.controllers.raspberrypi import RaspberryPi
