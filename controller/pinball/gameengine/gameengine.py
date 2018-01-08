@@ -1,6 +1,6 @@
 import logging
 import time
-import threading
+from threading import Timer, Lock
 
 import pinball.e_observable as e_observable
 from pinball.debugger import DebugEngine
@@ -44,7 +44,7 @@ class GameEngine():
         while True:
             # Improve code here to get a stable FPS
             self.tick()
-            time.sleep(0.002)
+            time.sleep(1/60)
             self._fps.tick()
 
     def tick(self):
@@ -79,7 +79,7 @@ class FPS(e_observable.Observable):
     def __init__(self):
         e_observable.Observable.__init__(self)
         self._frames = 0
-        self._lock = threading.Lock()
+        self._lock = Lock()
 
         # Start the FPS thread
         self._printFPS()
@@ -89,7 +89,7 @@ class FPS(e_observable.Observable):
             self._frames += 1
 
     def _printFPS(self):
-        t = threading.Timer(1.0, self._printFPS)
+        t = Timer(1.0, self._printFPS)
         t.setDaemon(True)
         t.start()
 

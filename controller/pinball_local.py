@@ -30,57 +30,53 @@ Construction of a game application:
     B) 'Enjoy' :)
 
 """
+
 import logging
 
 from pinball.gameengine.gameengine import GameEngine
-from pinball.controllers.powerdriver16 import PowerDriver16
-from pinball.controllers.mcp23017 import Mcp23017
-from pinball.controllers.tlc4950 import Tlc4950
-from pinball.controllers.raspberrypi import RaspberryPi
+from pinball.controllers.dummy import DummyController
 from pinball.gamedevices.flipper import Flipper
-from pinball.gamedevices.slingshot import Slingshot
 from pinball.gamedevices.led import Led, PwmLed, RGBLed
+from pinball.gamedevices.slingshot import Slingshot
 from pinball.gamedevices.inlane import Inlane
+from gamelogic import MyGame
+
 from pinball.gameengine.sounds import PyGameSoundManager
 
-from gamelogic import MyGame
 
 ##################################
 # 1) Instantiate hardware controllers
-raspberry = RaspberryPi()
-powerdriver16 = PowerDriver16("/dev/ttyAMA0")
-mcp23017 = Mcp23017(0x20)
-tlc4950 = Tlc4950(0x30)
-controllers = [raspberry, powerdriver16, mcp23017, Tlc4950]
+dummyController = DummyController()
+controllers = [dummyController]
 
 ###################################
 # 2) Instantiate devices on controllers
-BANKB = 1
-flipper_L_POWER_ENERGIZED = powerdriver16.getOut("L Flipper coil (high)", 0, BANKB, 0)
-flipper_L_POWER_HOLD = powerdriver16.getOut("L Flipper coil (hold)", 0, BANKB, 1)
-flipper_L_EOS = raspberry.getIn("L Flipper EOS", -1)
-flipper_R_POWER_ENERGIZED = powerdriver16.getOut("R Flipper coil (high)", 0, BANKB, 2)
-flipper_R_POWER_HOLD = powerdriver16.getOut("R Flipper coil (hold)", 0, BANKB, 3)
-flipper_R_EOS = raspberry.getIn("R Flipper EOS", -1)
-flipper_L_BUTTON = raspberry.getIn("L Flipper button", 23)
-flipper_R_BUTTON = raspberry.getIn("R Flipper button", 24)
+flipper_L_POWER_ENERGIZED = dummyController.getOut("L Flipper coil (high)")
+flipper_L_POWER_HOLD = dummyController.getOut("L Flipper coil (hold)")
+flipper_L_EOS = dummyController.getIn("L Flipper EOS")
+flipper_R_POWER_ENERGIZED = dummyController.getOut("R Flipper coil (high)")
+flipper_R_POWER_HOLD = dummyController.getOut("R Flipper coil (hold)")
+flipper_R_EOS = dummyController.getIn("R Flipper EOS")
+flipper_L_BUTTON = dummyController.getIn("L Flipper button")
+flipper_R_BUTTON = dummyController.getIn("R Flipper button")
 
-slingshot_left_detect = mcp23017.getIn("L Slingshot detect", 3, 0)
-slingshot_left_coil = powerdriver16.getOut("L Slingshot kicker", 0, BANKB, 4)
-slingshot_right_detect = mcp23017.getIn("R Slingshot detect", 4, 0)
-slingshot_right_coil = powerdriver16.getOut("R Slingshot kicker", 0, BANKB, 5)
+slingshot_left_detect = dummyController.getIn("L Slingshot detect")
+slingshot_left_coil = dummyController.getOut("L Slingshot kicker")
+slingshot_right_detect = dummyController.getIn("R Slingshot detect")
+slingshot_right_coil = dummyController.getOut("R Slingshot kicker")
 
-inlane_detect_upper = mcp23017.getIn("Switch inlane Upper", 6, 0, inv=True)
-inlane_detect_lower = mcp23017.getIn("Switch inlane Lower", 5, 0, inv=True)
+inlane_detect_upper = dummyController.getIn("Switch inlane Upper")
+inlane_detect_lower = dummyController.getIn("Switch inlane Lower")
 
-led_1 = Led(mcp23017.getOut("Led Blue", 0, 1))
-led_2 = Led(mcp23017.getOut("Led Green", 1, 1))
-led_3 = Led(mcp23017.getOut("Led Red", 2, 1))
+led_1 = Led(dummyController.getOut("B-Led Blue"))
+led_2 = Led(dummyController.getOut("B-Led Green"))
+led_3 = Led(dummyController.getOut("B-Led Red"))
 
-rgbled_r = Led(tlc4950.getPwmOut("RGB-Led Red", 1))
-rgbled_g = Led(tlc4950.getPwmOut("RGB-Led Green", 3))
-rgbled_b = Led(tlc4950.getPwmOut("RGB-Led Blue", 7))
-rgbled = RGBLed(PwmLed(rgbled_r), PwmLed(rgbled_g), PwmLed(rgbled_b))
+rgbled_1 = dummyController.getPwmOut("RGB-Led Red", (1 << 12) - 1)
+rgbled_2 = dummyController.getPwmOut("RGB-Led Green", (1 << 12) - 1)
+rgbled_3 = dummyController.getPwmOut("RGB-Led Blue", (1 << 12) - 1)
+rgbled = RGBLed(PwmLed(rgbled_1), PwmLed(rgbled_2), PwmLed(rgbled_3))
+rgbled.set(0x00ffaf)
 
 
 ######################################

@@ -13,8 +13,8 @@ class RaspberryPiInGameDevice(InGameDevice):
 
 
 class RaspberryPi(HWController):
-
-    """Represents a Raspberry Pi on which THIS software is running"""
+    """Represents a Raspberry Pi on which THIS software is running.
+    Can be used to read input devices."""
 
     def __init__(self):
         HWController.__init__(self)
@@ -25,15 +25,13 @@ class RaspberryPi(HWController):
 
     def getIn(self, name, pin, **kwargs):
         if(pin == -1):
-            # dummy
             return RaspberryPiInGameDevice(name, self, -1, **kwargs)
 
         if(pin in self._devices):
             raise Exception("Pin was already instanciated!")
 
         # Create device, default off
-        self._devices[pin] = (RaspberryPiInGameDevice(
-            name, self, pin, **kwargs), 0)
+        self._devices[pin] = (RaspberryPiInGameDevice(name, self, pin, **kwargs), 0)
         GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         return self._devices[pin][0]
 

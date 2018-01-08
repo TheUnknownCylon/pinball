@@ -2,7 +2,7 @@ import os
 import serial
 
 from pinball.controllers.hwgamedevice import OutGameDevice
-from pinball.controllers.hwcontroller import HWController
+from pinball.controllers.hwcontroller import BinaryOutHWController
 
 
 """
@@ -23,13 +23,13 @@ Notes:
 """
 
 
-class PowerDriver16(HWController):
+class PowerDriver16(BinaryOutHWController):
 
     def __init__(self, deviceAddress):
-        HWController.__init__(self)
+        BinaryOutHWController.__init__(self)
 
         if not os.path.exists(deviceAddress):
-            raise RuntimeError("""Serial device "{}" not found, PowerDriver16 will not work.""".format(serial_device_file))
+            raise RuntimeError("""Serial device "{}" not found, PowerDriver16 will not work.""".format(deviceAddress))
 
         # Initialize Communication
         self._serial = serial.Serial(deviceAddress, 9600)
@@ -43,6 +43,13 @@ class PowerDriver16(HWController):
         return self._devices
 
     def getOut(self, name, board, bank, pin):
+        """Returns a OutGameDevice for a device under the given board, bank, pin.
+
+        @param name Human readable name of the hardware device
+        @param board Board identifier of the PowerDriver16 chain
+        @param bank Identifier on which bank the device is located, bank A (0) or bank B (1)
+        @param pin Pin number of the device on the selected bank
+        """
         if (board, bank) not in self._values:
             self._values[(board, bank)] = 0x00
         self._dirtyBanks.add((board, bank))
@@ -52,6 +59,7 @@ class PowerDriver16(HWController):
         return device
 
     def activate(self, device):
+        """Callback for PowerDriver16OutGameDevice"""
         board = device.board
         bank = device.bank
         self._dirtyBanks.add((board, bank))
@@ -67,10 +75,6 @@ class PowerDriver16(HWController):
         for (board, bank) in self._dirtyBanks:
             self._serial.write([board, bank, self._values[(board, bank)]])
         self._dirtyBanks.clear()
-
-    # def __str__(self):
-    #     return "[{0} {1}] [ {2:08b} ]".format(
-    #         self._board, "B" if self._bank else "A", self._values)
 
 
 class PowerDriver16OutGameDevice(OutGameDevice):

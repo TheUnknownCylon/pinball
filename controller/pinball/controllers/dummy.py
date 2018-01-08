@@ -1,8 +1,8 @@
-from pinball.controllers.hwgamedevice import OutGameDevice, InGameDevice
-from pinball.controllers.hwcontroller import HWController
+from pinball.controllers.hwgamedevice import OutGameDevice, InGameDevice, PwmOutGameDevice
+from pinball.controllers.hwcontroller import BinaryOutHWController, PwmOutHWController
 
 
-class DummyController(HWController):
+class DummyController(BinaryOutHWController, PwmOutHWController):
     """
     HW Controller that uses dummy input and output devices.
 
@@ -11,7 +11,8 @@ class DummyController(HWController):
     """
 
     def __init__(self):
-        HWController.__init__(self)
+        BinaryOutHWController.__init__(self)
+        PwmOutHWController.__init__(self)
         self._devices = []  # map of (GameDevice, oldstate)
 
     def getHwDevices(self):
@@ -27,6 +28,11 @@ class DummyController(HWController):
         self._devices.append(outDevice)
         return outDevice
 
+    def getPwmOut(self, name, intensity):
+        outDevice = DummyPwmOutGameDevice(name, self, intensity)
+        self._devices.append(outDevice)
+        return outDevice
+
     def sync(self):
         pass
 
@@ -36,14 +42,17 @@ class DummyController(HWController):
     def deactivate(self, outDevice):
         pass
 
+    def update(self, outDevice):
+        pass
+
 
 class DummyOutGameDevice(OutGameDevice):
-
-    def __init__(self, name, hwdevice):
-        OutGameDevice.__init__(self, name, hwdevice)
+    pass
 
 
 class DummyInGameDevice(InGameDevice):
+    pass
 
-    def __init__(self, name, hwdevice, **kwargs):
-        InGameDevice.__init__(self, name, hwdevice, **kwargs)
+
+class DummyPwmOutGameDevice(PwmOutGameDevice):
+    pass

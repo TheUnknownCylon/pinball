@@ -2,12 +2,12 @@ import logging
 import smbus
 
 from pinball.controllers.hwgamedevice import OutGameDevice, InGameDevice
-from pinball.controllers.hwcontroller import HWController
+from pinball.controllers.hwcontroller import BinaryOutHWController
 
 logger = logging.getLogger(__name__)
 
 
-class Mcp23017(HWController):
+class Mcp23017(BinaryOutHWController):
     """
     MCP23017: 16 bit i/o extender. Can be used to control 16 GPIO devices
     per unit. Multiple units can be used by changing the address.
