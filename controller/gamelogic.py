@@ -15,11 +15,10 @@ class MyGame():
         self.active = led_1
         self._points = 0
 
-        sound1 = sm.createSFX("""/home/remco/pinball/soundsamples/eob_show_1.wav""")
-        sound2 = sm.createSFX("""/home/remco/pinball/soundsamples/eob_show_2.wav""")
-        sound3 = sm.createSFX("""/home/remco/pinball/soundsamples/eob_show_3.wav""")
-        sound4 = sm.createSFX("""/home/remco/pinball/soundsamples/eob_show_4.wav""")
-        music1 = sm.createMusic("""/home/remco/pinball/soundsamples/main_new.wav""")
+        sound1 = sm.createSFX("""/home/remco/media/eob_show_1.wav""")
+        sound2 = sm.createSFX("""/home/remco/media/eob_show_2.wav""")
+        sound3 = sm.createSFX("""/home/remco/media/eob_show_3.wav""")
+        sound4 = sm.createSFX("""/home/remco/media/eob_show_4.wav""")
 
         flash = ShowScript()
         flash.add(lambda: rgbled.set(0xFFFFFF), 0)

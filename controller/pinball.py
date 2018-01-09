@@ -51,7 +51,7 @@ raspberry = RaspberryPi()
 powerdriver16 = PowerDriver16("/dev/ttyAMA0")
 mcp23017 = Mcp23017(0x20)
 tlc4950 = Tlc4950(0x30)
-controllers = [raspberry, powerdriver16, mcp23017, Tlc4950]
+controllers = [raspberry, powerdriver16, mcp23017, tlc4950]
 
 ###################################
 # 2) Instantiate devices on controllers
@@ -65,21 +65,21 @@ flipper_R_EOS = raspberry.getIn("R Flipper EOS", -1)
 flipper_L_BUTTON = raspberry.getIn("L Flipper button", 23)
 flipper_R_BUTTON = raspberry.getIn("R Flipper button", 24)
 
-slingshot_left_detect = mcp23017.getIn("L Slingshot detect", 3, 0)
+slingshot_left_detect = mcp23017.getIn("L Slingshot detect", 3, 0, True)
 slingshot_left_coil = powerdriver16.getOut("L Slingshot kicker", 0, BANKB, 4)
-slingshot_right_detect = mcp23017.getIn("R Slingshot detect", 4, 0)
+slingshot_right_detect = mcp23017.getIn("R Slingshot detect", 4, 0, True)
 slingshot_right_coil = powerdriver16.getOut("R Slingshot kicker", 0, BANKB, 5)
 
-inlane_detect_upper = mcp23017.getIn("Switch inlane Upper", 6, 0, inv=True)
-inlane_detect_lower = mcp23017.getIn("Switch inlane Lower", 5, 0, inv=True)
+inlane_detect_upper = mcp23017.getIn("Switch inlane Upper", 6, 0, True)
+inlane_detect_lower = mcp23017.getIn("Switch inlane Lower", 5, 0, True)
 
 led_1 = Led(mcp23017.getOut("Led Blue", 0, 1))
 led_2 = Led(mcp23017.getOut("Led Green", 1, 1))
 led_3 = Led(mcp23017.getOut("Led Red", 2, 1))
 
-rgbled_r = Led(tlc4950.getPwmOut("RGB-Led Red", 1))
-rgbled_g = Led(tlc4950.getPwmOut("RGB-Led Green", 3))
-rgbled_b = Led(tlc4950.getPwmOut("RGB-Led Blue", 7))
+rgbled_r = tlc4950.getPwmOut("RGB-Led Red", 1)
+rgbled_g = tlc4950.getPwmOut("RGB-Led Green", 3)
+rgbled_b = tlc4950.getPwmOut("RGB-Led Blue", 7)
 rgbled = RGBLed(PwmLed(rgbled_r), PwmLed(rgbled_g), PwmLed(rgbled_b))
 
 
