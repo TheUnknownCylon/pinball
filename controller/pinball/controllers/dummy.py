@@ -53,6 +53,5 @@ class DummyOutGameDevice(OutGameDevice):
 class DummyInGameDevice(InGameDevice):
     pass
 
-
 class DummyPwmOutGameDevice(PwmOutGameDevice):
     pass

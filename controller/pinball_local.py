@@ -35,8 +35,10 @@ import logging
 
 from pinball.gameengine.gameengine import GameEngine
 from pinball.controllers.dummy import DummyController
+from pinball.gamedevices.balltrough import Balltrough
 from pinball.gamedevices.flipper import Flipper
 from pinball.gamedevices.led import Led, PwmLed, RGBLed
+from pinball.gamedevices.opto import Opto
 from pinball.gamedevices.slingshot import Slingshot
 from pinball.gamedevices.inlane import Inlane
 from gamelogic import MyGame
@@ -68,16 +70,36 @@ slingshot_right_coil = dummyController.getOut("R Slingshot kicker")
 inlane_detect_upper = dummyController.getIn("Switch inlane Upper")
 inlane_detect_lower = dummyController.getIn("Switch inlane Lower")
 
+pwmi = (1 << 12) - 1
+
+balltrough_kicker = dummyController.getOut("Balltrough kicker")
+balltrough_led_0 = dummyController.getPwmOut("Balltrough Led 0", pwmi)
+balltrough_led_1 = dummyController.getPwmOut("Balltrough Led 1", pwmi)
+balltrough_led_2 = dummyController.getPwmOut("Balltrough Led 2", pwmi)
+balltrough_led_3 = dummyController.getPwmOut("Balltrough Led 3", pwmi)
+balltrough_led_4 = dummyController.getPwmOut("Balltrough Led 4", pwmi)
+balltrough_in_0 = dummyController.getIn("Balltrough detect 0")
+balltrough_in_1 = dummyController.getIn("Balltrough detect 1")
+balltrough_in_2 = dummyController.getIn("Balltrough detect 2")
+balltrough_in_3 = dummyController.getIn("Balltrough detect 3")
+balltrough_in_4 = dummyController.getIn("Balltrough detect 4")
+balltrough_opto0 = Opto(PwmLed(balltrough_led_0), balltrough_in_0)
+balltrough_opto1 = Opto(PwmLed(balltrough_led_1), balltrough_in_1)
+balltrough_opto2 = Opto(PwmLed(balltrough_led_2), balltrough_in_2)
+balltrough_opto3 = Opto(PwmLed(balltrough_led_3), balltrough_in_3)
+balltrough_opto4 = Opto(PwmLed(balltrough_led_4), balltrough_in_4)
+
 led_1 = Led(dummyController.getOut("B-Led Blue"))
 led_2 = Led(dummyController.getOut("B-Led Green"))
 led_3 = Led(dummyController.getOut("B-Led Red"))
 
-rgbled_1 = dummyController.getPwmOut("RGB-Led Red", (1 << 12) - 1)
-rgbled_2 = dummyController.getPwmOut("RGB-Led Green", (1 << 12) - 1)
-rgbled_3 = dummyController.getPwmOut("RGB-Led Blue", (1 << 12) - 1)
+rgbled_1 = dummyController.getPwmOut("RGB-Led Red", pwmi)
+rgbled_2 = dummyController.getPwmOut("RGB-Led Green", pwmi)
+rgbled_3 = dummyController.getPwmOut("RGB-Led Blue", pwmi)
 rgbled = RGBLed(PwmLed(rgbled_1), PwmLed(rgbled_2), PwmLed(rgbled_3))
 rgbled.set(0x00ffaf)
 
+pwmled = PwmLed(dummyController.getPwmOut("Last", pwmi))
 
 ######################################
 # 3) Instantiate GameDevices -- using devices on controllers
@@ -86,6 +108,14 @@ flipperL = Flipper(flipper_L_BUTTON, flipper_L_EOS,
                    flipper_L_POWER_ENERGIZED, flipper_L_POWER_HOLD)
 flipperR = Flipper(flipper_R_BUTTON, flipper_R_EOS,
                    flipper_R_POWER_ENERGIZED, flipper_R_POWER_HOLD)
+
+balltrough = Balltrough(balltrough_kicker, [
+    balltrough_opto0,
+    balltrough_opto1,
+    balltrough_opto2,
+    balltrough_opto3,
+    balltrough_opto4
+])
 
 slingshotL = Slingshot(slingshot_left_detect, slingshot_left_coil)
 slingshotR = Slingshot(slingshot_right_detect, slingshot_right_coil)
@@ -97,7 +127,7 @@ inlane = Inlane(inlane_detect_upper, inlane_detect_lower)
 #
 sm = PyGameSoundManager()
 game = MyGame(sm, flipperL, flipperR, slingshotL, slingshotR, inlane, led_1,
-              led_2, led_3, rgbled)
+              led_2, led_3, balltrough, rgbled)
 
 # When invoked directly from the CLI, run the pinball engine as main process
 if __name__ == "__main__":

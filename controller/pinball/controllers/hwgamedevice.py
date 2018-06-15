@@ -75,12 +75,24 @@ class PwmOutGameDevice(GameDevice):
         self._hwController = hwController
         self._maxIntensity = maxIntensity
         self._intensity = 0
+        self._lastActive = self._intensity
+
+    def activate(self):
+        value = self._lastActive if self._lastActive else self._maxIntensity
+        self.setIntensity(value)
+
+    def deactivate(self):
+        self.setIntensity(0x00)
 
     def setIntensity(self, value):
         if value > self._maxIntensity:
             value = self._maxIntensity
         elif value < 0:
             value = 0
+
+        if value:
+            self._lastActive = value
+
         self._intensity = value
         self._activated = value > 0
 

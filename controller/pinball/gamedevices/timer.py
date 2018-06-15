@@ -1,7 +1,7 @@
 import threading
 
-from pinball.gamedevices.gamedevice import GameDevice
 from pinball.e_observable import Observable
+from pinball.gamedevices.gamedevice import GameDevice
 
 
 class GameTimer(GameDevice, Observable):
@@ -31,7 +31,6 @@ class GameTimer(GameDevice, Observable):
             self._t = None
 
     def start(self):
-        self._enabled = True
         self._t = threading.Timer(self._timeout, self._handle)
         self._t.setDaemon(True)
         self._t.start()
