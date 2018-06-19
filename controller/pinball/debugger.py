@@ -1,16 +1,16 @@
 import logging
-import tornado
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
 import threading
 
+from pinball.gameengine.gameengine import GameEngine
+
 logger = logging.getLogger(__name__)
 
 
 class DebugEngine():
-
-    def __init__(self, gameengine):
+    def __init__(self, gameengine: GameEngine) -> None:
         self._gameengine = gameengine
 
     def start(self):
@@ -26,14 +26,13 @@ class DebugEngine():
         t.start()
 
     def make_gui(self):
-        return tornado.web.Application([
-            (r"/", PinballPage),
-            (r"/websocket", DebugWebSocket, {
+        return tornado.web.Application(
+            [(r"/", PinballPage), (r"/websocket", DebugWebSocket, {
                 "devices": self._devices,
                 "gamelogic": self._gamelogic,
                 "fps": self._gameengine._fps
-              })
-        ], debug=True)
+            })],
+            debug=True)
 
 
 class DebugWebSocket(tornado.websocket.WebSocketHandler):
@@ -47,8 +46,8 @@ class DebugWebSocket(tornado.websocket.WebSocketHandler):
     def _deviceupdate(self, d, *args, **kwargs):
         """Sends device status updates to the GUI"""
         try:
-            self.write_message("D:{}:{}:{}".format(
-                1 if d.isActivated() else 0, id(d), d.getName()))
+            self.write_message("D:{}:{}:{}".format(1 if d.isActivated() else 0,
+                                                   id(d), d.getName()))
         except:
             pass
 

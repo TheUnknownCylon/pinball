@@ -1,5 +1,6 @@
 import logging
 
+from pinball.controllers.hwgamedevice import InGameDevice, OutGameDevice
 from pinball.gamedevices.gamedevice import GameDevice
 from pinball.gamedevices.timer import GameTimer
 
@@ -20,7 +21,6 @@ class Flipperstate:
 
 
 class Flipper(GameDevice):
-
     """
     Class that manages the state of a single 'fliptronic' flipper.
 
@@ -34,7 +34,9 @@ class Flipper(GameDevice):
     without re-pressing the flipper button.
     """
 
-    def __init__(self, button, eos, power_energized, power_hold):
+    def __init__(self, button: InGameDevice, eos: InGameDevice,
+                 power_energized: OutGameDevice,
+                 power_hold: OutGameDevice) -> None:
         GameDevice.__init__(self)
 
         self._state = Flipperstate.LOW
@@ -48,7 +50,7 @@ class Flipper(GameDevice):
         eos.observe(self, self.flipperEvent)
         self._eostimer.observe(self, self.flipperEvent)
 
-    def flipperEvent(self, cause, deviceState=None):
+    def flipperEvent(self, cause: InGameDevice, deviceState=None):
         state = self._state
         oldstate = self._state
 
@@ -56,7 +58,7 @@ class Flipper(GameDevice):
             if cause == self._button and deviceState:
                 state = Flipperstate.ENERGIZED
             # elif cause == self._eos and deviceState:
-                # state = Flipperstate.EOS_ERROR
+            # state = Flipperstate.EOS_ERROR
             elif cause == BLOCK and deviceState:
                 state = Flipperstate.BLOCKED
 
@@ -89,8 +91,8 @@ class Flipper(GameDevice):
         if state != oldstate:
             self._state = state
             self._power_energized.set(state == Flipperstate.ENERGIZED)
-            self._power_hold.set(
-                state == Flipperstate.HOLD or state == Flipperstate.EOSHOLD)
+            self._power_hold.set(state == Flipperstate.HOLD
+                                 or state == Flipperstate.EOSHOLD)
             if state == Flipperstate.ENERGIZED:
                 self._eostimer.restart()
             else:

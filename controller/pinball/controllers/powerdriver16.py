@@ -3,8 +3,7 @@ import serial
 
 from pinball.controllers.hwgamedevice import OutGameDevice
 from pinball.controllers.hwcontroller import BinaryOutHWController
-
-
+from typing import Set, Tuple, Dict, List
 """
 PowerDriver16
 
@@ -24,31 +23,37 @@ Notes:
 
 
 class PowerDriver16(BinaryOutHWController):
+    def __init__(self, deviceAddress: str) -> None:
+        """
+        Constructs a controller for the PowerDriver 16.
 
-    def __init__(self, deviceAddress):
+        :param deviceAddress: device address for serial communication to the PowerDriver16 (e.g. /dev/ttyUSB0)
+        """
         BinaryOutHWController.__init__(self)
 
         if not os.path.exists(deviceAddress):
-            raise RuntimeError("""Serial device "{}" not found, PowerDriver16 will not work.""".format(deviceAddress))
+            raise RuntimeError(
+                """Serial device "{}" not found, PowerDriver16 will not work.""".
+                format(deviceAddress))
 
         # Initialize Communication
         self._serial = serial.Serial(deviceAddress, 9600)
         self._serial.write("MY MAGIC PINBALL\r\n".encode())
 
-        self._values = {}
-        self._dirtyBanks = set()
-        self._devices = []
+        self._values: Dict[Tuple[int, int], int] = {}
+        self._dirtyBanks: Set[Tuple[int, int]] = set()
+        self._devices: List['PowerDriver16OutGameDevice'] = []
 
     def getHwDevices(self):
         return self._devices
 
-    def getOut(self, name, board, bank, pin):
+    def getOut(self, name, board: int, bank: int, pin: int):
         """Returns a OutGameDevice for a device under the given board, bank, pin.
 
-        @param name Human readable name of the hardware device
-        @param board Board identifier of the PowerDriver16 chain
-        @param bank Identifier on which bank the device is located, bank A (0) or bank B (1)
-        @param pin Pin number of the device on the selected bank
+        :param name: Human readable name of the hardware device
+        :param board: Board identifier of the PowerDriver16 chain
+        :param bank: Identifier on which bank the device is located, bank A (0) or bank B (1)
+        :param pin: Pin number of the device on the selected bank
         """
         if (board, bank) not in self._values:
             self._values[(board, bank)] = 0x00
@@ -58,14 +63,13 @@ class PowerDriver16(BinaryOutHWController):
         self._devices.append(device)
         return device
 
-    def activate(self, device):
-        """Callback for PowerDriver16OutGameDevice"""
+    def activate(self, device: 'PowerDriver16OutGameDevice'):
         board = device.board
         bank = device.bank
         self._dirtyBanks.add((board, bank))
         self._values[(board, bank)] |= device.pin
 
-    def deactivate(self, device):
+    def deactivate(self, device: 'PowerDriver16OutGameDevice'):
         board = device.board
         bank = device.bank
         self._dirtyBanks.add((board, bank))
@@ -78,9 +82,9 @@ class PowerDriver16(BinaryOutHWController):
 
 
 class PowerDriver16OutGameDevice(OutGameDevice):
-
-    def __init__(self, name, hwgamedevice, board, bank, pin):
-        OutGameDevice.__init__(self, name, hwgamedevice)
+    def __init__(self, name, controller: PowerDriver16, board: int, bank: int,
+                 pin: int) -> None:
+        OutGameDevice.__init__(self, name, controller)
         self.board = board
         self.bank = bank
         self.pin = pin

@@ -10,6 +10,8 @@ Welcome to Pinball's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   apidoc/modules
+
 
 
 Indices and tables

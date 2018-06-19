@@ -2,15 +2,19 @@ import logging
 import time
 from threading import Timer, Lock
 
+from typing import List
+
 import pinball.e_observable as e_observable
 from pinball.debugger import DebugEngine
+
+from typing import List
+from pinball.controllers.hwcontroller import HWController
 
 logger = logging.getLogger(__name__)
 
 
-class HardwareEngine():
-
-    def __init__(self, hwcontrollers):
+class _HardwareEngine():
+    def __init__(self, hwcontrollers: List[HWController]) -> None:
         self.hwcontrollers = hwcontrollers
 
     def tick(self):
@@ -29,10 +33,10 @@ class HardwareEngine():
 
 
 class GameEngine():
-
-    def __init__(self, hwcontrollers, gamelogic):
+    def __init__(self, hwcontrollers: List[HWController], gamelogic) -> None:
+        # TODO: Type of Gamelogic, and why?
         self._fps = FPS()
-        self._hwengine = HardwareEngine(hwcontrollers)
+        self._hwengine = _HardwareEngine(hwcontrollers)
         self._gamelogic = gamelogic
         self._debugger = DebugEngine(self)
 
@@ -44,7 +48,7 @@ class GameEngine():
         while True:
             # Improve code here to get a stable FPS
             self.tick()
-            time.sleep(1/60)
+            time.sleep(1 / 60)
             self._fps.tick()
 
     def tick(self):
@@ -67,7 +71,6 @@ class GameEngine():
 
 
 class FPS(e_observable.Observable):
-
     """
     Simple class that can be used to keep track of the games frames per
     second. Each time a game frame is over, the tick() method must be issued.

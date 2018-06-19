@@ -1,5 +1,5 @@
 import logging
-import smbus
+from smbus2 import SMBus
 
 from pinball.controllers.hwgamedevice import OutGameDevice, InGameDevice
 from pinball.controllers.hwcontroller import BinaryOutHWController
@@ -18,25 +18,22 @@ class Mcp23017(BinaryOutHWController):
     only, or for output only (e.g. bank A input devices only, and bank B output
     defices only).
 
+    Pin layout:
 
-    # Pin layout
-    Placed here for reference, not to replace the original documentation
-
-                  ____   _____
-    GPB0 <--> 01  |   \_/    |  28 <--> GPA7
-    GPB1 <--> 02  |          |  27 <--> GPA6
-    GPB2 <--> 03  |          |  26 <--> GPA5
-    GPB3 <--> 04  |    M     |  25 <--> GPA4
-    GPB4 <--> 05  |    C     |  24 <--> GPA3
-    GPB5 <--> 06  |    P     |  23 <--> GPA2
-    GPB6 <--> 07  |    2     |  22 <--> GPA1
-    GPB7 <--> 08  |    3     |  21 <--> GPA0
-     VDD <--> 09  |    0     |  20  --> INTA
-     VSS  --> 10  |    1     |  19  --> INTB
-      NC  --  11  |    7     |  18  --> RESET
-     SCL  --> 12  |          |  17 <--  A2
-     SDA <--> 13  |          |  16 <--  A1
-      NC  --  14  |__________|  15 <--  A0
+       GPB0 <--> 01  |   \_/    |  28 <--> GPA7
+       GPB1 <--> 02  |          |  27 <--> GPA6
+       GPB2 <--> 03  |          |  26 <--> GPA5
+       GPB3 <--> 04  |    M     |  25 <--> GPA4
+       GPB4 <--> 05  |    C     |  24 <--> GPA3
+       GPB5 <--> 06  |    P     |  23 <--> GPA2
+       GPB6 <--> 07  |    2     |  22 <--> GPA1
+       GPB7 <--> 08  |    3     |  21 <--> GPA0
+        VDD <--> 09  |    0     |  20  --> INTA
+        VSS  --> 10  |    1     |  19  --> INTB
+         NC  --  11  |    7     |  18  --> RESET
+        SCL  --> 12  |          |  17 <--  A2
+        SDA <--> 13  |          |  16 <--  A1
+         NC  --  14  |__________|  15 <--  A0
 
 
     Connections:
@@ -66,7 +63,7 @@ class Mcp23017(BinaryOutHWController):
 
     def __init__(self, address):
 
-        self.bus = smbus.SMBus(1)
+        self.bus = SMBus(1)
         self._address = address
 
         # Dirty flag, if True the OUTPUT state of hardware has to be updated

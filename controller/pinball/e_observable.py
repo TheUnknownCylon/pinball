@@ -1,16 +1,16 @@
-
 from collections import defaultdict
+
+from typing import DefaultDict, List, Tuple, Callable, Any
 
 # Variable that holds all events that need to be processed during the next
 # frame
 #
 # TODO This needs to be refactored. It is a global variable. Perhaps this could
 #      be moved to the game-engine?
-observerEvents = []
+observerEvents: List[Tuple[Callable, Observable, Any]] = []
 
 
 class Observable:
-
     """
     Class that represents an event-based observable object. When (an instance)
     of this class wants to inform its observers, it will do not call the
@@ -20,12 +20,12 @@ class Observable:
     """
 
     def __init__(self):
-        self._observers = defaultdict(list)
+        self._observers: DefaultDict[Any, List[Callable]] = defaultdict(list)
 
-    def observe(self, observer, callback):
+    def observe(self, observer: Any, callback: Callable):
         self._observers[observer].append(callback)
 
-    def deobserve(self, observer, callback):
+    def deobserve(self, observer: Any, callback: Callable):
         try:
             self._observers[observer].remove(callback)
             if len(self._observers[observer]) == 0:
@@ -33,7 +33,7 @@ class Observable:
         except:
             pass
 
-    def inform(self, state=None):
+    def inform(self, state: bool = None):
         """By calling this method, all observers will be informed that there
         has been a change in this observable. This event will be processed
         next tick."""

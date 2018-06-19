@@ -2,7 +2,6 @@ from pinball.gamedevices.gamedevice import GameDevice
 
 
 class Inlane(GameDevice):
-
     """
     Represents a simple inlane implementation, where the inlane consists of
     a single lower detection switch, and a single upper detection switch.
@@ -18,7 +17,7 @@ class Inlane(GameDevice):
           incorrect state.
     """
 
-    NONE = 0   # State: No ball has entered the inlane (no ball in-game)
+    NONE = 0  # State: No ball has entered the inlane (no ball in-game)
     LOWER = 1  # State: last switch activated was the lower switch
     UPPER = 2  # State: last switch activated was the upper switch
 
@@ -27,7 +26,8 @@ class Inlane(GameDevice):
     EVENT_INLANEPASSED = 2
     EVENT_INLANEBACK = 3
 
-    def __init__(self, switch_upper, switch_lower):
+    def __init__(self, switch_upper: InGameDevice,
+                 switch_lower: InGameDevice) -> None:
         GameDevice.__init__(self)
 
         self._switch_upper = switch_upper
@@ -41,7 +41,7 @@ class Inlane(GameDevice):
     def reset(self):
         self._state = self.NONE
 
-    def detectLower(self, cause, deviceState=None):
+    def detectLower(self, cause: InGameDevice, deviceState=None):
         """Callback for the inlane lower detection switch."""
         if not deviceState:
             return
@@ -57,7 +57,7 @@ class Inlane(GameDevice):
             self._triggerEvent(self.EVENT_INLANEFAIL)
             self.reset()
 
-    def detectUpper(self, cause, deviceState=None):
+    def detectUpper(self, cause: InGameDevice, deviceState=None):
         """Callback for the inlane upper detection switch."""
         if not deviceState:
             return
