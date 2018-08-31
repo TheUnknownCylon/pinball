@@ -1,5 +1,6 @@
 from pinball.gamedevices.gamedevice import GameDevice
 
+from pinball.controllers.hwdevice import InputDevice
 
 class Inlane(GameDevice):
     """
@@ -26,8 +27,8 @@ class Inlane(GameDevice):
     EVENT_INLANEPASSED = 2
     EVENT_INLANEBACK = 3
 
-    def __init__(self, switch_upper: InGameDevice,
-                 switch_lower: InGameDevice) -> None:
+    def __init__(self, switch_upper: InputDevice,
+                 switch_lower: InputDevice) -> None:
         GameDevice.__init__(self)
 
         self._switch_upper = switch_upper
@@ -41,7 +42,7 @@ class Inlane(GameDevice):
     def reset(self):
         self._state = self.NONE
 
-    def detectLower(self, cause: InGameDevice, deviceState=None):
+    def detectLower(self, cause: InputDevice, deviceState=None):
         """Callback for the inlane lower detection switch."""
         if not deviceState:
             return
@@ -57,7 +58,7 @@ class Inlane(GameDevice):
             self._triggerEvent(self.EVENT_INLANEFAIL)
             self.reset()
 
-    def detectUpper(self, cause: InGameDevice, deviceState=None):
+    def detectUpper(self, cause: InputDevice, deviceState=None):
         """Callback for the inlane upper detection switch."""
         if not deviceState:
             return

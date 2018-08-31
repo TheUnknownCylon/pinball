@@ -1,14 +1,14 @@
-from pinball.controllers.hwgamedevice import InGameDevice
+from pinball.controllers.hwdevice import InputDevice
 from pinball.controllers.hwcontroller import HWController
 
 import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
 
 
-class RaspberryPiInGameDevice(InGameDevice):
+class RaspberryPiInputDevice(InputDevice):
 
     def __init__(self, name, pin: int, **kwargs) -> None:
-        InGameDevice.__init__(self, name, **kwargs)
+        InputDevice.__init__(self, name)
         self._pin = pin
 
 
@@ -18,20 +18,20 @@ class RaspberryPi(HWController):
 
     def __init__(self):
         HWController.__init__(self)
-        self._devices: Dict[RaspberryPiInGameDevice, bool] = {} # dict of (InGameDevice, oldstate)
+        self._devices: Dict[RaspberryPiInputDevice, bool] = {}
 
     def getHwDevices(self):
         return list([x[0] for x in self._devices.values()])
 
     def getIn(self, name, pin: int, **kwargs):
         if(pin == -1):
-            return RaspberryPiInGameDevice(name, -1, **kwargs)
+            return RaspberryPiInputDevice(name, -1, **kwargs)
 
         if(pin in self._devices):
             raise Exception("Pin was already instanciated!")
 
         # Create device, default off
-        self._devices[pin] = (RaspberryPiInGameDevice(name, pin, **kwargs), 0)
+        self._devices[pin] = (RaspberryPiInputDevice(name, pin, **kwargs), 0)
         GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         return self._devices[pin][0]
 

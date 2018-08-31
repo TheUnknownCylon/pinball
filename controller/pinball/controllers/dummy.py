@@ -1,20 +1,20 @@
-from pinball.controllers.hwgamedevice import OutGameDevice, InGameDevice, PwmOutGameDevice
-from pinball.controllers.hwcontroller import BinaryOutHWController, PwmOutHWController
+from pinball.controllers.hwcontroller import OutputHWController
+from pinball.controllers.hwdevice import OutputDevice, InputDevice, PwmOutputDevice
 
 
-class DummyOutGameDevice(OutGameDevice):
+class DummyOutputDevice(OutputDevice):
     pass
 
 
-class DummyInGameDevice(InGameDevice):
+class DummyInputDevice(InputDevice):
     pass
 
 
-class DummyPwmOutGameDevice(PwmOutGameDevice):
+class DummyPwmOutputDevice(PwmOutputDevice):
     pass
 
 
-class DummyController(BinaryOutHWController, PwmOutHWController):
+class DummyController(OutputHWController):
     """
     HW Controller that uses dummy input and output devices.
 
@@ -23,43 +23,36 @@ class DummyController(BinaryOutHWController, PwmOutHWController):
     """
 
     def __init__(self):
-        BinaryOutHWController.__init__(self)
-        PwmOutHWController.__init__(self)
+        OutputHWController.__init__(self)
         self._devices = []
 
     def getHwDevices(self):
         return self._devices[:]
 
-    def getIn(self, name) -> DummyInGameDevice:
+    def getIn(self, name) -> DummyInputDevice:
         """Creates and returns a new dummy input device."""
-        inDevice = DummyInGameDevice(name)
+        inDevice = DummyInputDevice(name)
         self._devices.append(inDevice)
         return inDevice
 
-    def getOut(self, name) -> DummyOutGameDevice:
+    def getOut(self, name) -> DummyOutputDevice:
         """Creates and returns a new dummy output device."""
-        outDevice = DummyOutGameDevice(name, self)
+        outDevice = DummyOutputDevice(name)
         self._devices.append(outDevice)
         return outDevice
 
-    def getPwmOut(self, name, intensity: int) -> DummyPwmOutGameDevice:
+    def getPwmOut(self, name, maxIntensity: int) -> DummyPwmOutputDevice:
         """
         Creates and returns a new dummy PWM output device.
         
-        :param intensity: initial intensity value 
+        :param maxIntensity: maximum intensity valuet that can be set
         """
-        outDevice = DummyPwmOutGameDevice(name, self, intensity)
+        outDevice = DummyPwmOutputDevice(name, self, maxIntensity)
         self._devices.append(outDevice)
         return outDevice
 
     def sync(self):
         pass
 
-    def activate(self, outDevice: DummyOutGameDevice):
-        pass
-
-    def deactivate(self, outDevice: DummyOutGameDevice):
-        pass
-
-    def update(self, outDevice: DummyPwmOutGameDevice):
+    def update(self, device: DummyOutputDevice):
         pass

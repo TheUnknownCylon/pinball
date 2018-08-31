@@ -7,7 +7,7 @@ from typing import DefaultDict, List, Tuple, Callable, Any
 #
 # TODO This needs to be refactored. It is a global variable. Perhaps this could
 #      be moved to the game-engine?
-observerEvents: List[Tuple[Callable, Observable, Any]] = []
+observerEvents: List[Tuple[Callable, 'Observable', Any]] = []
 
 
 class Observable:

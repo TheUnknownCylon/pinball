@@ -1,6 +1,6 @@
 import logging
 
-from pinball.controllers.hwgamedevice import InGameDevice, OutGameDevice
+from pinball.controllers.hwdevice import InputDevice, BinaryOutputDevice
 from pinball.gamedevices.gamedevice import GameDevice
 from pinball.gamedevices.timer import GameTimer
 
@@ -34,9 +34,9 @@ class Flipper(GameDevice):
     without re-pressing the flipper button.
     """
 
-    def __init__(self, button: InGameDevice, eos: InGameDevice,
-                 power_energized: OutGameDevice,
-                 power_hold: OutGameDevice) -> None:
+    def __init__(self, button: InputDevice, eos: InputDevice,
+                 power_energized: BinaryOutputDevice,
+                 power_hold: BinaryOutputDevice) -> None:
         GameDevice.__init__(self)
 
         self._state = Flipperstate.LOW
@@ -50,7 +50,7 @@ class Flipper(GameDevice):
         eos.observe(self, self.flipperEvent)
         self._eostimer.observe(self, self.flipperEvent)
 
-    def flipperEvent(self, cause: InGameDevice, deviceState=None):
+    def flipperEvent(self, cause: InputDevice, deviceState=None):
         state = self._state
         oldstate = self._state
 

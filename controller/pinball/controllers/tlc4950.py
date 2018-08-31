@@ -1,28 +1,30 @@
+from __future__ import annotations
+
 import logging
 from smbus2 import SMBus
 
 from typing import List, Set
 
-from pinball.controllers.hwgamedevice import PwmOutGameDevice
-from pinball.controllers.hwcontroller import PwmOutHWController
+from pinball.controllers.hwdevice import PwmOutputDevice
+from pinball.controllers.hwcontroller import OutputHWController
 
 TLC4950_MAX_INTENSITY = (1 << 12) - 1
 
 
-class Tlc4950(PwmOutHWController):
+class Tlc4950(OutputHWController):
     def __init__(self, address: int) -> None:
         """
         Constructs a new TLC4950.
 
         :param address: I2C address of the TLC4950 device.
         """
-        PwmOutHWController.__init__(self)
+        OutputHWController.__init__(self)
 
         self._bus = SMBus(1)
         self._address = address
 
-        self._devices: List['Tlc4950OutGameDevice'] = []
-        self._dirty: Set['Tlc4950OutGameDevice'] = set()
+        self._devices: List[Tlc4950OutputDevice] = []
+        self._dirty: Set[Tlc4950OutputDevice] = set()
 
     def getHwDevices(self):
         return self._devices[:]
@@ -48,15 +50,15 @@ class Tlc4950(PwmOutHWController):
         self._bus.write_i2c_block_data(self._address, b[0], b[1:])
 
     def getPwmOut(self, name, pin: int):
-        outDevice = Tlc4950OutGameDevice(name, self, pin)
+        outDevice = Tlc4950OutputDevice(name, self, pin)
         self._devices.append(outDevice)
         return outDevice
 
-    def update(self, pwmOutDevice: 'Tlc4950OutGameDevice'):
+    def update(self, pwmOutDevice: Tlc4950OutputDevice):
         self._dirty.add(pwmOutDevice)
 
 
-class Tlc4950OutGameDevice(PwmOutGameDevice):
+class Tlc4950OutputDevice(PwmOutputDevice):
     def __init__(self, name, hwdevice: Tlc4950, pin: int) -> None:
-        PwmOutGameDevice.__init__(self, name, hwdevice, TLC4950_MAX_INTENSITY)
+        PwmOutputDevice.__init__(self, name, hwdevice, TLC4950_MAX_INTENSITY)
         self._pin = pin

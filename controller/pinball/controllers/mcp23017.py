@@ -1,13 +1,15 @@
 import logging
 from smbus2 import SMBus
 
-from pinball.controllers.hwgamedevice import OutGameDevice, InGameDevice
-from pinball.controllers.hwcontroller import BinaryOutHWController
+from typing import List
+
+from pinball.controllers.hwdevice import Device, BinaryOutputDevice, InputDevice
+from pinball.controllers.hwcontroller import OutputHWController
 
 logger = logging.getLogger(__name__)
 
 
-class Mcp23017(BinaryOutHWController):
+class Mcp23017(OutputHWController):
     """
     MCP23017: 16 bit i/o extender. Can be used to control 16 GPIO devices
     per unit. Multiple units can be used by changing the address.
@@ -19,7 +21,7 @@ class Mcp23017(BinaryOutHWController):
     defices only).
 
     Pin layout:
-
+                     ____   _____
        GPB0 <--> 01  |   \_/    |  28 <--> GPA7
        GPB1 <--> 02  |          |  27 <--> GPA6
        GPB2 <--> 03  |          |  26 <--> GPA5
@@ -49,19 +51,20 @@ class Mcp23017(BinaryOutHWController):
     """
 
     # Device specific registers
-    IODIRA = 0x00   # Pin direction (bank A)
-    IODIRB = 0x01   # Pin direction (bank B)
-    GPIOA = 0x12    # Register for inputs (bank A)
-    GPIOB = 0x13    # Register for inputs (bank B)
-    OLATA = 0x14    # Register for outputs (bank A)
-    OLATB = 0x15    # Register for outputs (bank B)
-    GPPUBA = 0x0C   # Register for pullup config (bank A)
-    GPPUBB = 0x0D   # Register for pullup config (bank B)
+    IODIRA = 0x00  # Pin direction (bank A)
+    IODIRB = 0x01  # Pin direction (bank B)
+    GPIOA = 0x12  # Register for inputs (bank A)
+    GPIOB = 0x13  # Register for inputs (bank B)
+    OLATA = 0x14  # Register for outputs (bank A)
+    OLATB = 0x15  # Register for outputs (bank B)
+    GPPUBA = 0x0C  # Register for pullup config (bank A)
+    GPPUBB = 0x0D  # Register for pullup config (bank B)
 
-    BANKA = 0x00    # Index in state variable :for this bank
+    BANKA = 0x00  # Index in state variable :for this bank
     BANKB = 0x01
 
-    def __init__(self, address):
+    def __init__(self, address: int) -> None:
+        OutputHWController.__init__(self)
 
         self.bus = SMBus(1)
         self._address = address
@@ -79,10 +82,10 @@ class Mcp23017(BinaryOutHWController):
         self._pullup = [0x00, 0x00]
 
         # For bank A and B keep the input devices
-        self._indevices = [[], []]
+        self._indevices : List[List[Device]]= [[], []]
 
         # Keep all devices in a single list to return to the HWController
-        self._devices = []
+        self._devices : List[Device] = []
 
         # Initialise by setting all values as output and set to LOW
         self.bus.write_byte_data(self._address, self.GPPUBA, 0x00)
@@ -92,7 +95,7 @@ class Mcp23017(BinaryOutHWController):
         self.bus.write_byte_data(self._address, self.IODIRB, 0x00)
         self.sync()
 
-    def getHwDevices(self):
+    def getDevices(self) -> List[Device]:
         return self._devices
 
     def getOut(self, name, pin, bank):
@@ -104,7 +107,7 @@ class Mcp23017(BinaryOutHWController):
         @param pin Pin number on the bank (0..7)
         @param bank Bank identifier (use Mcp23017.BANKA or Mcp23017.BANKB)
         """
-        device = Mcp23017OutGameDevice(name, self, pin, bank)
+        device = Mcp23017OutputDevice(name, self, pin, bank)
         self._devices.append(device)
         return device
 
@@ -124,14 +127,18 @@ class Mcp23017(BinaryOutHWController):
         if pullup:
             self._pullup[bank] |= (1 << pin)
 
-        self.bus.write_byte_data(self._address, self.GPPUBA, self._pullup[self.BANKA])
-        self.bus.write_byte_data(self._address, self.GPPUBB, self._pullup[self.BANKB])
+        self.bus.write_byte_data(self._address, self.GPPUBA,
+                                 self._pullup[self.BANKA])
+        self.bus.write_byte_data(self._address, self.GPPUBB,
+                                 self._pullup[self.BANKB])
 
         # Update all direction registers on the device
-        self.bus.write_byte_data(self._address, self.IODIRA, self._directions[self.BANKA])
-        self.bus.write_byte_data(self._address, self.IODIRB, self._directions[self.BANKB])
+        self.bus.write_byte_data(self._address, self.IODIRA,
+                                 self._directions[self.BANKA])
+        self.bus.write_byte_data(self._address, self.IODIRB,
+                                 self._directions[self.BANKB])
 
-        device = Mcp23017InGameDevice(name, self, pin, bank, **kwargs)
+        device = Mcp23017InputDevice(name, self, pin, bank, **kwargs)
         self._indevices[bank].append(device)
         self._devices.append(device)
         return device
@@ -140,14 +147,18 @@ class Mcp23017(BinaryOutHWController):
         # Set ouptut devices bank A
         if self._dirty[self.BANKA]:
             self._dirty[self.BANKA] = False
-            logger.debug("0x{:02X} - set OLATA: 0x{:02X}".format(self._address, self._state[self.BANKA]))
-            self.bus.write_byte_data(self._address, self.OLATA, self._state[self.BANKA])
+            logger.debug("0x{:02X} - set OLATA: 0x{:02X}".format(
+                self._address, self._state[self.BANKA]))
+            self.bus.write_byte_data(self._address, self.OLATA,
+                                     self._state[self.BANKA])
 
         # Set ouptut devices bank B
         if self._dirty[self.BANKB]:
             self._dirty[self.BANKB] = False
-            logger.debug("0x{:02X} - set OLATB 0x{:02X}".format(self._address, self._state[self.BANKB]))
-            self.bus.write_byte_data(self._address, self.OLATB, self._state[self.BANKB])
+            logger.debug("0x{:02X} - set OLATB 0x{:02X}".format(
+                self._address, self._state[self.BANKB]))
+            self.bus.write_byte_data(self._address, self.OLATB,
+                                     self._state[self.BANKB])
 
         # Load input devices bank A
         if self._indevices[self.BANKA]:
@@ -163,11 +174,15 @@ class Mcp23017(BinaryOutHWController):
                 state = 0
             self._parseIn(self._indevices[self.BANKB], state)
 
-    def activate(self, device):
+    def update(self, outDevice: Mcp23017OutputDevice):
+        self._activate(outDevice) if outDevice.get() else self._deactivate(
+            outDevice)
+
+    def _activate(self, device: Mcp23017OutputDevice):
         self._state[device.bank] |= device.pin
         self._dirty[device.bank] = True
 
-    def deactivate(self, device):
+    def _deactivate(self, device: Mcp23017OutputDevice):
         self._state[device.bank] &= (~device.pin)
         self._dirty[device.bank] = True
 
@@ -175,23 +190,24 @@ class Mcp23017(BinaryOutHWController):
         for device in devices:
             devstate = state & device.pin
             if device.oldstate != devstate:
-                logger.debug("0x{:02X} - {} input changed 0b{:08b} 0b{:08b} 0b{:08b}".format(self._address, device, state, devstate, device.oldstate))
+                logger.debug(
+                    "0x{:02X} - {} input changed 0b{:08b} 0b{:08b} 0b{:08b}".
+                    format(self._address, device, state, devstate,
+                           device.oldstate))
                 device.oldstate = devstate
                 device.inform(devstate)
 
 
-class Mcp23017OutGameDevice(OutGameDevice):
-
-    def __init__(self, name, hwdevice, pin, bank):
-        OutGameDevice.__init__(self, name, hwdevice)
+class Mcp23017OutputDevice(BinaryOutputDevice):
+    def __init__(self, name, hwdevice, pin: int, bank: int) -> None:
+        BinaryOutputDevice.__init__(self, name, hwdevice)
         self.pin = (1 << pin)
         self.bank = bank
 
 
-class Mcp23017InGameDevice(InGameDevice):
-
-    def __init__(self, name, hwdevice, pin, bank, **kwargs):
-        InGameDevice.__init__(self, name, hwdevice, **kwargs)
+class Mcp23017InputDevice(InputDevice):
+    def __init__(self, name, hwdevice, pin, bank, **kwargs) -> None:
+        InputDevice.__init__(self, name)
         self.pin = (1 << pin)
-        self.bank = bank   # pin on Bank A or Bank B
+        self.bank = bank  # pin on Bank A or Bank B
         self.oldstate = 0  # Known state, variable controlled by Mcp23017

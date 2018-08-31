@@ -5,7 +5,6 @@ from threading import Timer, Lock
 from typing import List
 
 import pinball.e_observable as e_observable
-from pinball.debugger import DebugEngine
 
 from typing import List
 from pinball.controllers.hwcontroller import HWController
@@ -38,10 +37,8 @@ class GameEngine():
         self._fps = FPS()
         self._hwengine = _HardwareEngine(hwcontrollers)
         self._gamelogic = gamelogic
-        self._debugger = DebugEngine(self)
 
     def run(self):
-        self._debugger.start()
         e_observable.observerEvents.clear()
         logger.info("game started")
 

@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 from pinball.e_observable import Observable
+from pinball.controllers.hwcontroller import OutputHWController
 
 
-class GameDevice(Observable):
+class Device(Observable):
     """Data class that represents a hardware device, such as a coil, switch, or LED."""
 
     def __init__(self, name):
@@ -32,80 +35,92 @@ class GameDevice(Observable):
         return "{}:{}".format(type(self).__name__, self._name)
 
 
-class InGameDevice(GameDevice):
+class InputDevice(Device):
     """
     Represents a digital input game device.
     It can have two states: activate (on) or not active (off).
     """
 
-    def __init__(self, name, inv: bool = False) -> None:
-        GameDevice.__init__(self, name)
-        self._inv = inv
+    def __init__(self, name) -> None:
+        Device.__init__(self, name)
+        self._activated = False
 
-    def inform(self, state: bool):
+    def _set(self, activated: bool):
         """
-        Method to set the new state of this device.
+        Method to be called by the :class:`HWController` when the controller reads a new
+        state of this device.
         
-        Informs all observers that the state of this device has changed.
-        
-        :param state: True if the new state is activated, False if the new state is deactivated. 
+        :param activated: True if the new state is activated, False if the new state is deactivated. 
         """
-        if self._inv:
-            state = not state
-
-        if self._activated != state:
-            self._activated = state
-            Observable.inform(self, state)
+        if self._activated != activated:
+            self._activated = activated
+            Observable.inform(self)
 
 
-class OutGameDevice(GameDevice):
+class OutputDevice(Device):
+    """Represents an output device"""
+
+    def __init__(self, name):
+        Device.__init__(self, name)
+
+    def activate(self):
+        """Activates the hardware device."""
+        raise NotImplementedError
+
+    def deactivate(self):
+        """Activates the hardware device."""
+        raise NotImplementedError
+
+
+class BinaryOutputDevice(OutputDevice):
     """
     Represents a digital output game device.
     It can have two states: activate (on) or not active (off).
     """
 
-    def __init__(self, name,
-                 binaryOutHWController: 'BinaryOutHWController') -> None:
-        GameDevice.__init__(self, name)
-        self._hwController = binaryOutHWController
+    def __init__(self, name, hwController: OutputHWController) -> None:
+        OutputDevice.__init__(self, name)
+        self._hwController = hwController
+        self._activated = False
 
     def set(self, activated: bool):
         """
-        Activates or deactives the given device.
+        Activates or deactives the given device. Note that the actual device
+        activation or deactivation is delayed until the controllers sync is
+        being called.
 
         :param activated: boolean to indicate activation or deactivation
         """
-        if activated:
-            self.activate()
-        else:
-            self.deactivate()
+        if self._activated != activated:
+            self._activated = activated
+            self._hwController.update(self)
+
+    def get(self) -> bool:
+        """
+        :return: true if the device is activated after the next controller sync
+        """
+        return self._activated
 
     def activate(self):
         """Activates the hardware device."""
-        self._hwController.activate(self)
-        if self._activated is not True:
-            self._activated = True
-            Observable.inform(self, self._activated)
+        self.set(True)
 
     def deactivate(self):
         """Deactivates the hardware device."""
-        self._hwController.deactivate(self)
-        if self._activated is not False:
-            self._activated = False
-            Observable.inform(self, self._activated)
+        self.set(False)
 
 
-class PwmOutGameDevice(GameDevice):
-    def __init__(self, name, hwController: 'PwmOutHWController',
+class PwmOutputDevice(OutputDevice):
+    def __init__(self, name, hwController: OutputHWController,
                  maxIntensity: int) -> None:
         """
-        Constructs a new PwmOutGameDevice.
+        Constructs a new output device that can be controlled using PWM.
 
         :param name: human-readable name of this device
         :param hwController: the controller that manages this device
         :param maxIntensity: maximum intensity value that can be set
         """
-        GameDevice.__init__(self, name)
+        OutputDevice.__init__(self, name)
         self._hwController = hwController
         self._maxIntensity = maxIntensity
         self._intensity = 0
@@ -143,12 +158,8 @@ class PwmOutGameDevice(GameDevice):
         self._activated = value > 0
 
         self._hwController.update(self)
-        Observable.inform(self, self._activated)
 
     def maxIntensity(self) -> int:
         """Returns the maximum intensity value of this device."""
         return self._maxIntensity
 
-
-# Imports for type checks only (circular dependency)
-from pinball.controllers.hwcontroller import HWController, BinaryOutHWController, PwmOutHWController
