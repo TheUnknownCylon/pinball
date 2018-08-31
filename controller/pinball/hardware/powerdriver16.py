@@ -46,7 +46,7 @@ class PowerDriver16(OutputController):
         self._dirtyBanks: Set[Tuple[int, int]] = set()
         self._devices: List[PowerDriver16OutputDevice] = []
 
-    def getHwDevices(self):
+    def getDevices(self):
         return self._devices
 
     def getOut(self, name, board: int, bank: int, pin: int):

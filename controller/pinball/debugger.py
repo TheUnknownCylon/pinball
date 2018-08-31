@@ -16,7 +16,7 @@ class DebugEngine():
         self._gameengine = gameengine
 
     def start(self):
-        self._devices = self._gameengine._hwengine.getHwDevices()
+        self._devices = self._gameengine._hwengine.getDevices()
         self._gamelogic = self._gameengine._gamelogic
 
         guiapp = self.make_gui()

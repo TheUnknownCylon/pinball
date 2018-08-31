@@ -20,7 +20,7 @@ class RaspberryPi(Controller):
         Controller.__init__(self)
         self._devices: Dict[RaspberryPiInputDevice, bool] = {}
 
-    def getHwDevices(self):
+    def getDevices(self):
         return list([x[0] for x in self._devices.values()])
 
     def getIn(self, name, pin: int, **kwargs):

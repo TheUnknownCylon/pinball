@@ -26,7 +26,7 @@ class Tlc4950(OutputController):
         self._devices: List[Tlc4950OutputDevice] = []
         self._dirty: Set[Tlc4950OutputDevice] = set()
 
-    def getHwDevices(self):
+    def getDevices(self):
         return self._devices[:]
 
     def sync(self):

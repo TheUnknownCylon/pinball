@@ -30,7 +30,7 @@ class DummyController(OutputController):
         OutputController.__init__(self)
         self._devices = []
 
-    def getHwDevices(self):
+    def getDevices(self):
         return self._devices[:]
 
     def getIn(self, name) -> DummyInputDevice:

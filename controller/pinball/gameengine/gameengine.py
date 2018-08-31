@@ -22,12 +22,12 @@ class _HardwareEngine():
         for controller in self.controllers:
             controller.sync()
 
-    def getHwDevices(self):
+    def getDevices(self):
         """Returns a list of all hardware devices registered to the hardware
         controllers."""
         devices = []
         for controller in self.controllers:
-            devices += controller.getHwDevices()
+            devices += controller.getDevices()
         return devices
 
 
