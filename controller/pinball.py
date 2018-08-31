@@ -33,11 +33,11 @@ Construction of a game application:
 import logging
 
 from pinball.gameengine.gameengine import GameEngine
-from pinball.controllers.dummy import DummyController
-from pinball.controllers.powerdriver16 import PowerDriver16
-from pinball.controllers.mcp23017 import Mcp23017
-from pinball.controllers.tlc4950 import Tlc4950
-from pinball.controllers.raspberrypi import RaspberryPi
+from pinball.hardware.dummy import DummyController
+from pinball.hardware.powerdriver16 import PowerDriver16
+from pinball.hardware.mcp23017 import Mcp23017
+from pinball.hardware.tlc4950 import Tlc4950
+from pinball.hardware.raspberrypi import RaspberryPi
 from pinball.gamedevices.balltrough import Balltrough
 from pinball.gamedevices.flipper import Flipper
 from pinball.gamedevices.slingshot import Slingshot

@@ -1,5 +1,5 @@
-from pinball.controllers.hwdevice import InputDevice
-from pinball.controllers.hwcontroller import HWController
+from pinball.hardware.hwdevice import InputDevice
+from pinball.hardware.controller import Controller
 
 import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
@@ -12,12 +12,12 @@ class RaspberryPiInputDevice(InputDevice):
         self._pin = pin
 
 
-class RaspberryPi(HWController):
+class RaspberryPi(Controller):
     """Represents a Raspberry Pi on which THIS software is running.
     Can be used to read input devices."""
 
     def __init__(self):
-        HWController.__init__(self)
+        Controller.__init__(self)
         self._devices: Dict[RaspberryPiInputDevice, bool] = {}
 
     def getHwDevices(self):

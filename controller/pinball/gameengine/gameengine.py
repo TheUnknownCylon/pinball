@@ -7,35 +7,35 @@ from typing import List
 import pinball.e_observable as e_observable
 
 from typing import List
-from pinball.controllers.hwcontroller import HWController
+from pinball.hardware.controller import Controller
 
 logger = logging.getLogger(__name__)
 
 
 class _HardwareEngine():
-    def __init__(self, hwcontrollers: List[HWController]) -> None:
-        self.hwcontrollers = hwcontrollers
+    def __init__(self, controllers: List[Controller]) -> None:
+        self.controllers = controllers
 
     def tick(self):
         """Advance to the next game frame.
         Syncs all input and output devices with the controller states."""
-        for controller in self.hwcontrollers:
+        for controller in self.controllers:
             controller.sync()
 
     def getHwDevices(self):
         """Returns a list of all hardware devices registered to the hardware
         controllers."""
         devices = []
-        for controller in self.hwcontrollers:
+        for controller in self.controllers:
             devices += controller.getHwDevices()
         return devices
 
 
 class GameEngine():
-    def __init__(self, hwcontrollers: List[HWController], gamelogic) -> None:
+    def __init__(self, controllers: List[Controller], gamelogic) -> None:
         # TODO: Type of Gamelogic, and why?
         self._fps = FPS()
-        self._hwengine = _HardwareEngine(hwcontrollers)
+        self._hwengine = _HardwareEngine(controllers)
         self._gamelogic = gamelogic
 
     def run(self):

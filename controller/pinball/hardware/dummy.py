@@ -1,5 +1,5 @@
-from pinball.controllers.hwcontroller import OutputHWController
-from pinball.controllers.hwdevice import OutputDevice, InputDevice, PwmOutputDevice
+from pinball.hardware.controller import OutputController
+from pinball.hardware.hwdevice import OutputDevice, InputDevice, PwmOutputDevice
 
 
 class DummyOutputDevice(OutputDevice):
@@ -14,7 +14,7 @@ class DummyPwmOutputDevice(PwmOutputDevice):
     pass
 
 
-class DummyController(OutputHWController):
+class DummyController(OutputController):
     """
     HW Controller that uses dummy input and output devices.
 
@@ -23,7 +23,7 @@ class DummyController(OutputHWController):
     """
 
     def __init__(self):
-        OutputHWController.__init__(self)
+        OutputController.__init__(self)
         self._devices = []
 
     def getHwDevices(self):

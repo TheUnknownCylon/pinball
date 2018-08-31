@@ -3,13 +3,13 @@ from smbus2 import SMBus
 
 from typing import List
 
-from pinball.controllers.hwdevice import Device, BinaryOutputDevice, InputDevice
-from pinball.controllers.hwcontroller import OutputHWController
+from pinball.hardware.hwdevice import Device, BinaryOutputDevice, InputDevice
+from pinball.hardware.controller import OutputController
 
 logger = logging.getLogger(__name__)
 
 
-class Mcp23017(OutputHWController):
+class Mcp23017(OutputController):
     """
     MCP23017: 16 bit i/o extender. Can be used to control 16 GPIO devices
     per unit. Multiple units can be used by changing the address.
@@ -64,7 +64,7 @@ class Mcp23017(OutputHWController):
     BANKB = 0x01
 
     def __init__(self, address: int) -> None:
-        OutputHWController.__init__(self)
+        OutputController.__init__(self)
 
         self.bus = SMBus(1)
         self._address = address
@@ -84,7 +84,7 @@ class Mcp23017(OutputHWController):
         # For bank A and B keep the input devices
         self._indevices : List[List[Device]]= [[], []]
 
-        # Keep all devices in a single list to return to the HWController
+        # Keep all devices in a single list to return to the Controller
         self._devices : List[Device] = []
 
         # Initialise by setting all values as output and set to LOW

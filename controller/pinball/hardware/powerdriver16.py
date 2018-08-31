@@ -3,8 +3,8 @@ from __future__ import annotations
 import os
 import serial
 
-from pinball.controllers.hwdevice import OutputDevice
-from pinball.controllers.hwcontroller import OutputHWController
+from pinball.hardware.hwdevice import OutputDevice
+from pinball.hardware.controller import OutputController
 from typing import Set, Tuple, Dict, List
 """
 PowerDriver16
@@ -24,14 +24,14 @@ Notes:
 """
 
 
-class PowerDriver16(OutputHWController):
+class PowerDriver16(OutputController):
     def __init__(self, deviceAddress: str) -> None:
         """
         Constructs a controller for the PowerDriver 16.
 
         :param deviceAddress: device address for serial communication to the PowerDriver16 (e.g. /dev/ttyUSB0)
         """
-        OutputHWController.__init__(self)
+        OutputController.__init__(self)
 
         if not os.path.exists(deviceAddress):
             raise RuntimeError(

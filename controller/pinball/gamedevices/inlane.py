@@ -1,6 +1,6 @@
 from pinball.gamedevices.gamedevice import GameDevice
 
-from pinball.controllers.hwdevice import InputDevice
+from pinball.hardware.hwdevice import InputDevice
 
 class Inlane(GameDevice):
     """

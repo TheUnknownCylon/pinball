@@ -5,20 +5,20 @@ from smbus2 import SMBus
 
 from typing import List, Set
 
-from pinball.controllers.hwdevice import PwmOutputDevice
-from pinball.controllers.hwcontroller import OutputHWController
+from pinball.hardware.hwdevice import PwmOutputDevice
+from pinball.hardware.controller import OutputController
 
 TLC4950_MAX_INTENSITY = (1 << 12) - 1
 
 
-class Tlc4950(OutputHWController):
+class Tlc4950(OutputController):
     def __init__(self, address: int) -> None:
         """
         Constructs a new TLC4950.
 
         :param address: I2C address of the TLC4950 device.
         """
-        OutputHWController.__init__(self)
+        OutputController.__init__(self)
 
         self._bus = SMBus(1)
         self._address = address

@@ -7,7 +7,7 @@ from typing import List
 from pinball.e_observable import Observable
 
 
-class HWController(Observable):
+class Controller(Observable):
     """
     Class that can be used by subclasses to represent hardware controllers.
 
@@ -42,7 +42,7 @@ class HWController(Observable):
         raise NotImplementedError
 
 
-class OutputHWController(HWController):
+class OutputController(Controller):
     """
     Base class for controllers which control instances of :class:`OutputDevice`.
 
@@ -54,11 +54,11 @@ class OutputHWController(HWController):
         """
         Callback for :class:`OutputDevice` to inform the controller that the
         state of the device should be changed during the next 
-        :func:`~HWController.sync`.
+        :func:`~Controller.sync`.
 
         :param outDevice: the OutGameDevice that has been activated
         """
         raise NotImplementedError
 
 
-from pinball.controllers.hwdevice import Device, OutputDevice
+from pinball.hardware.hwdevice import Device, OutputDevice

@@ -34,7 +34,7 @@ Construction of a game application:
 import logging
 
 from pinball.gameengine.gameengine import GameEngine
-from pinball.controllers.dummy import DummyController
+from pinball.hardware.dummy import DummyController
 from pinball.gamedevices.flipper import Flipper
 from pinball.gamedevices.led import Led, PwmLed, RGBLed
 from pinball.gamedevices.slingshot import Slingshot

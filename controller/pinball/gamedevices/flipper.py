@@ -1,6 +1,6 @@
 import logging
 
-from pinball.controllers.hwdevice import InputDevice, BinaryOutputDevice
+from pinball.hardware.hwdevice import InputDevice, BinaryOutputDevice
 from pinball.gamedevices.gamedevice import GameDevice
 from pinball.gamedevices.timer import GameTimer
 

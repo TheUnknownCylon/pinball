@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pinball.e_observable import Observable
-from pinball.controllers.hwcontroller import OutputHWController
+from pinball.hardware.controller import OutputController
 
 
 class Device(Observable):
@@ -47,7 +47,7 @@ class InputDevice(Device):
 
     def _set(self, activated: bool):
         """
-        Method to be called by the :class:`HWController` when the controller reads a new
+        Method to be called by the :class:`Controller` when the controller reads a new
         state of this device.
         
         :param activated: True if the new state is activated, False if the new state is deactivated. 
@@ -78,7 +78,7 @@ class BinaryOutputDevice(OutputDevice):
     It can have two states: activate (on) or not active (off).
     """
 
-    def __init__(self, name, hwController: OutputHWController) -> None:
+    def __init__(self, name, hwController: OutputController) -> None:
         OutputDevice.__init__(self, name)
         self._hwController = hwController
         self._activated = False
@@ -111,7 +111,7 @@ class BinaryOutputDevice(OutputDevice):
 
 
 class PwmOutputDevice(OutputDevice):
-    def __init__(self, name, hwController: OutputHWController,
+    def __init__(self, name, hwController: OutputController,
                  maxIntensity: int) -> None:
         """
         Constructs a new output device that can be controlled using PWM.
