@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from abc import abstractmethod
+
 from pinball.e_observable import Observable
 from pinball.hardware.controller import OutputController
 
@@ -63,10 +65,12 @@ class OutputDevice(Device):
     def __init__(self, name):
         Device.__init__(self, name)
 
+    @abstractmethod
     def activate(self):
         """Activates the hardware device."""
         raise NotImplementedError
 
+    @abstractmethod
     def deactivate(self):
         """Activates the hardware device."""
         raise NotImplementedError

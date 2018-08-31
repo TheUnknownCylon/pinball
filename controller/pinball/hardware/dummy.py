@@ -3,7 +3,11 @@ from pinball.hardware.hwdevice import OutputDevice, InputDevice, PwmOutputDevice
 
 
 class DummyOutputDevice(OutputDevice):
-    pass
+    def activate(self):
+        pass
+
+    def deactivate(self):
+        pass
 
 
 class DummyInputDevice(InputDevice):

@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -7,9 +9,11 @@ class AbstractMusic():
     def __init__(self, filename):
         pass
 
+    @abstractmethod
     def play(self):
         raise NotImplementedError()
 
+    @abstractmethod
     def stop(self):
         raise NotImplementedError()
 
@@ -19,6 +23,7 @@ class AbstractSoundFx():
     def __init__(self, filename):
         pass
 
+    @abstractmethod
     def play(self):
         raise NotImplementedError()
 
@@ -34,9 +39,11 @@ class AbstractSoundManager():
         self._current_bg = music
         music.play()
 
+    @abstractmethod
     def createMusic(self, filename):
         raise NotImplementedError()
 
+    @abstractmethod
     def createSFX(self, filename):
         raise NotImplementedError()
 

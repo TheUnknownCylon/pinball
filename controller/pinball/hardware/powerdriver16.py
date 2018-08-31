@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import serial
 
-from pinball.hardware.hwdevice import OutputDevice
+from pinball.hardware.hwdevice import BinaryOutputDevice
 from pinball.hardware.controller import OutputController
 from typing import Set, Tuple, Dict, List
 """
@@ -50,7 +50,7 @@ class PowerDriver16(OutputController):
         return self._devices
 
     def getOut(self, name, board: int, bank: int, pin: int):
-        """Returns a OutputDevice for a device under the given board, bank, pin.
+        """Returns a BinaryOutputDevice for a device under the given board, bank, pin.
 
         :param name: Human readable name of the hardware device
         :param board: Board identifier of the PowerDriver16 chain
@@ -83,10 +83,10 @@ class PowerDriver16(OutputController):
         self._dirtyBanks.clear()
 
 
-class PowerDriver16OutputDevice(OutputDevice):
+class PowerDriver16OutputDevice(BinaryOutputDevice):
     def __init__(self, name, controller: PowerDriver16, board: int, bank: int,
                  pin: int) -> None:
-        OutputDevice.__init__(self, name)
+        BinaryOutputDevice.__init__(self, name, controller)
         self.board = board
         self.bank = bank
         self.pin = pin
