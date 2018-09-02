@@ -6,8 +6,7 @@ GPIO.setmode(GPIO.BCM)
 
 
 class RaspberryPiInputDevice(InputDevice):
-
-    def __init__(self, name, pin: int, **kwargs) -> None:
+    def __init__(self, name, pin: int) -> None:
         InputDevice.__init__(self, name)
         self._pin = pin
 
@@ -23,15 +22,15 @@ class RaspberryPi(Controller):
     def getDevices(self):
         return list([x[0] for x in self._devices.values()])
 
-    def getIn(self, name, pin: int, **kwargs):
-        if(pin == -1):
-            return RaspberryPiInputDevice(name, -1, **kwargs)
+    def getIn(self, name, pin: int):
+        if (pin == -1):
+            return RaspberryPiInputDevice(name, -1)
 
-        if(pin in self._devices):
+        if (pin in self._devices):
             raise Exception("Pin was already instanciated!")
 
         # Create device, default off
-        self._devices[pin] = (RaspberryPiInputDevice(name, pin, **kwargs), 0)
+        self._devices[pin] = (RaspberryPiInputDevice(name, pin), 0)
         GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         return self._devices[pin][0]
 
@@ -39,4 +38,4 @@ class RaspberryPi(Controller):
         for pin, (device, oldstate) in self._devices.items():
             if GPIO.input(pin) != oldstate:
                 self._devices[pin] = (device, not oldstate)
-                device.inform(not oldstate)
+                device._set(not oldstate)

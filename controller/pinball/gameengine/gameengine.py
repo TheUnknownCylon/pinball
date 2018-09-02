@@ -55,8 +55,8 @@ class GameEngine():
         """
 
         while e_observable.observerEvents:
-            (event, cause, newstate) = e_observable.observerEvents.pop(0)
-            event(cause, newstate)
+            (event, cause) = e_observable.observerEvents.pop(0)
+            event(cause)
 
         # TODO: Two pass sync? Write to devices before going to
         #      sleep, and read from devices after sleep.
@@ -83,6 +83,7 @@ class FPS(e_observable.Observable):
 
         # Start the FPS thread
         self._printFPS()
+        self._fps : int
 
     def tick(self):
         with self._lock:
@@ -94,6 +95,6 @@ class FPS(e_observable.Observable):
         t.start()
 
         with self._lock:
-            fps = self._frames
+            self._fps = self._frames
             self._frames = 0
-            self.inform(fps)
+            self.inform()

@@ -38,4 +38,4 @@ class GameTimer(GameDevice, Observable):
     def _handle(self):
         """Internal handle, informs all observers on the occurence of a
         timeout."""
-        self.inform(self._timeout)
+        self.inform()

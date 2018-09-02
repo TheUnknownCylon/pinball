@@ -33,10 +33,10 @@ class Observable:
         except:
             pass
 
-    def inform(self, state: bool = None):
+    def inform(self):
         """By calling this method, all observers will be informed that there
         has been a change in this observable. This event will be processed
         next tick."""
         for observer in self._observers:
             for callback in self._observers[observer]:
-                observerEvents.append((callback, self, state))
+                observerEvents.append((callback, self))

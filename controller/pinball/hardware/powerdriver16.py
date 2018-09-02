@@ -65,13 +65,13 @@ class PowerDriver16(OutputController):
         self._devices.append(device)
         return device
 
-    def activate(self, device: PowerDriver16OutputDevice):
+    def _activate(self, device: PowerDriver16OutputDevice):
         board = device.board
         bank = device.bank
         self._dirtyBanks.add((board, bank))
         self._values[(board, bank)] |= device.pin
 
-    def deactivate(self, device: PowerDriver16OutputDevice):
+    def _deactivate(self, device: PowerDriver16OutputDevice):
         board = device.board
         bank = device.bank
         self._dirtyBanks.add((board, bank))
@@ -81,6 +81,12 @@ class PowerDriver16(OutputController):
         for (board, bank) in self._dirtyBanks:
             self._serial.write([board, bank, self._values[(board, bank)]])
         self._dirtyBanks.clear()
+
+    def update(self, device: PowerDriver16OutputDevice):
+        if device.isActivated():
+            self._activate(device)
+        else:
+            self._deactivate(device)
 
 
 class PowerDriver16OutputDevice(BinaryOutputDevice):

@@ -53,9 +53,9 @@ class DebugWebSocket(tornado.websocket.WebSocketHandler):
         except:
             pass
 
-    def _fpsupdate(self, device, fps):
+    def _fpsupdate(self, device):
         try:
-            self.write_message("FPS:{}".format(fps))
+            self.write_message("FPS:{}".format(fps._fps))
         except:
             pass
 

@@ -71,38 +71,40 @@ flipper_R_EOS = raspberry.getIn("R Flipper EOS", -1)
 flipper_L_BUTTON = raspberry.getIn("L Flipper button", 23)
 flipper_R_BUTTON = raspberry.getIn("R Flipper button", 24)
 
-slingshot_left_detect = mcp23017.getIn("L Slingshot detect", 2, 1, True)
-slingshot_left_coil = powerdriver16.getOut("L Slingshot kicker", 0, BANKB, 4)
-slingshot_right_detect = mcp23017.getIn("R Slingshot detect", 3, 1, True)
-slingshot_right_coil = powerdriver16.getOut("R Slingshot kicker", 0, BANKB, 5)
+slingshot_left_detect = dummyController.getIn("L Slingshot detect")
+slingshot_left_coil = dummyController.getOut("L Slingshot kicker")
+slingshot_right_detect = dummyController.getIn("R Slingshot detect")
+slingshot_right_coil = dummyController.getOut("R Slingshot kicker")
 
-inlane_detect_upper = mcp23017.getIn("Switch inlane Upper", 0, 1, True)
-inlane_detect_lower = mcp23017.getIn("Switch inlane Lower", 1, 1, True)
+inlane_detect_upper = dummyController.getIn("Switch inlane Upper")
+inlane_detect_lower = dummyController.getIn("Switch inlane Lower")
+
+pwmi = (1 << 12) - 1
 
 balltrough_kicker = dummyController.getOut("Balltrough kicker")
-balltrough_led_0 = tlc4950.getPwmOut("Balltrough Led 0", 14)
-balltrough_led_1 = tlc4950.getPwmOut("Balltrough Led 1", 13)
-balltrough_led_2 = tlc4950.getPwmOut("Balltrough Led 2", 12)
-balltrough_led_3 = tlc4950.getPwmOut("Balltrough Led 3", 11)
-balltrough_led_4 = tlc4950.getPwmOut("Balltrough Led 4", 10)
-balltrough_in_0 = mcp23017.getIn("Balltrough detect 0", 7, 0, True)
-balltrough_in_1 = mcp23017.getIn("Balltrough detect 1", 6, 0, True)
-balltrough_in_2 = mcp23017.getIn("Balltrough detect 2", 5, 0, True)
-balltrough_in_3 = mcp23017.getIn("Balltrough detect 3", 4, 0, True)
-balltrough_in_4 = mcp23017.getIn("Balltrough detect 4", 3, 0, True)
+balltrough_led_0 = dummyController.getPwmOut("Balltrough Led 0", pwmi)
+balltrough_led_1 = dummyController.getPwmOut("Balltrough Led 1", pwmi)
+balltrough_led_2 = dummyController.getPwmOut("Balltrough Led 2", pwmi)
+balltrough_led_3 = dummyController.getPwmOut("Balltrough Led 3", pwmi)
+balltrough_led_4 = dummyController.getPwmOut("Balltrough Led 4", pwmi)
+balltrough_in_0 = dummyController.getIn("Balltrough detect 0")
+balltrough_in_1 = dummyController.getIn("Balltrough detect 1")
+balltrough_in_2 = dummyController.getIn("Balltrough detect 2")
+balltrough_in_3 = dummyController.getIn("Balltrough detect 3")
+balltrough_in_4 = dummyController.getIn("Balltrough detect 4")
 #balltrough_opto0 = Opto(PwmLed(balltrough_led_0), balltrough_in_0)
 #balltrough_opto1 = Opto(PwmLed(balltrough_led_1), balltrough_in_1)
 #balltrough_opto2 = Opto(PwmLed(balltrough_led_2), balltrough_in_2)
 #balltrough_opto3 = Opto(PwmLed(balltrough_led_3), balltrough_in_3)
 #balltrough_opto4 = Opto(PwmLed(balltrough_led_4), balltrough_in_4)
 
-led_1 = Led(mcp23017.getOut("Led Blue", 0, 1))
-led_2 = Led(mcp23017.getOut("Led Green", 1, 1))
-led_3 = Led(mcp23017.getOut("Led Red", 2, 1))
+led_1 = Led(dummyController.getOut("B-Led Blue"))
+led_2 = Led(dummyController.getOut("B-Led Green"))
+led_3 = Led(dummyController.getOut("B-Led Red"))
 
-rgbled_1 = tlc4950.getPwmOut("RGB-Led Red", 0)
-rgbled_2 = tlc4950.getPwmOut("RGB-Led Green", 1)
-rgbled_3 = tlc4950.getPwmOut("RGB-Led Blue", 2)
+rgbled_1 = dummyController.getPwmOut("RGB-Led Red", pwmi)
+rgbled_2 = dummyController.getPwmOut("RGB-Led Green", pwmi)
+rgbled_3 = dummyController.getPwmOut("RGB-Led Blue", pwmi)
 rgbled = RGBLed(PwmLed(rgbled_1), PwmLed(rgbled_2), PwmLed(rgbled_3))
 rgbled.set(0x00ffaf)
 
@@ -117,9 +119,9 @@ flipperR = Flipper(flipper_R_BUTTON, flipper_R_EOS,
 #balltrough = Balltrough(balltrough_kicker, [
 #    balltrough_opto0,
 #    balltrough_opto1,
-#     balltrough_opto2,
-#     balltrough_opto3,
-#     balltrough_opto4,
+#    balltrough_opto2,
+#    balltrough_opto3,
+#    balltrough_opto4
 #])
 
 slingshotL = Slingshot(slingshot_left_detect, slingshot_left_coil)

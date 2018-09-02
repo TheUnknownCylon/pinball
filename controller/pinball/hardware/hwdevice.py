@@ -98,6 +98,7 @@ class BinaryOutputDevice(OutputDevice):
         if self._activated != activated:
             self._activated = activated
             self._hwController.update(self)
+            Observable.inform(self)
 
     def get(self) -> bool:
         """

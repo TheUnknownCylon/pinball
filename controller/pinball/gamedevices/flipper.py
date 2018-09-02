@@ -4,8 +4,6 @@ from pinball.hardware.hwdevice import InputDevice, BinaryOutputDevice
 from pinball.gamedevices.gamedevice import GameDevice
 from pinball.gamedevices.timer import GameTimer
 
-BLOCK = 0
-UNBLOCK = 0
 EOSTIMEOUT = 1
 
 logger = logging.getLogger(__name__)
@@ -16,7 +14,6 @@ class Flipperstate:
     ENERGIZED = "Energized"  # 0x01
     HOLD = "Hold"  # 0x02
     EOSHOLD = "EOSHold"  # 0x03
-    BLOCKED = "Blocked"  # 0x04
     EOS_ERROR = "EOS ERROR"  # 0xFF
 
 
@@ -50,49 +47,43 @@ class Flipper(GameDevice):
         eos.observe(self, self.flipperEvent)
         self._eostimer.observe(self, self.flipperEvent)
 
-    def flipperEvent(self, cause: InputDevice, deviceState=None):
+    def flipperEvent(self, cause: InputDevice):
+
         state = self._state
         oldstate = self._state
 
         if state == Flipperstate.LOW:
-            if cause == self._button and deviceState:
+            if cause == self._button and self._button.isActivated():
                 state = Flipperstate.ENERGIZED
             # elif cause == self._eos and deviceState:
             # state = Flipperstate.EOS_ERROR
-            elif cause == BLOCK and deviceState:
-                state = Flipperstate.BLOCKED
 
         elif state == Flipperstate.ENERGIZED:
-            if cause == self._button and not deviceState:
+            if cause == self._button and not self._button.isActivated():
                 state = Flipperstate.LOW
-            elif cause == self._eos and deviceState:
+            elif cause == self._eos and self._eos.isActivated():
                 state = Flipperstate.HOLD
             elif cause == self._eostimer:
                 logger.error("eos not detected, assuming eos high")
                 state = Flipperstate.EOSHOLD
 
         elif state == Flipperstate.HOLD:
-            if cause == self._button and not deviceState:
+            if cause == self._button and not self._button.isActivated():
                 state = Flipperstate.LOW
-            elif cause == self._eos and not deviceState:
+            elif cause == self._eos and not self._eos.isActivated():
                 state = Flipperstate.ENERGIZED
 
         elif state == Flipperstate.EOSHOLD:
-            if cause == self._button and not deviceState:
+            if cause == self._button and not self._button.isActivated():
                 state = Flipperstate.LOW
-            elif cause == self._eos and deviceState:
+            elif cause == self._eos and self._eos.isActivated():
                 logger.debug("(finally!) got eos")
                 state = Flipperstate.HOLD
-
-        elif state == Flipperstate.BLOCKED:
-            if cause == UNBLOCK:
-                state = Flipperstate.LOW
 
         if state != oldstate:
             self._state = state
             self._power_energized.set(state == Flipperstate.ENERGIZED)
-            self._power_hold.set(state == Flipperstate.HOLD
-                                 or state == Flipperstate.EOSHOLD)
+            self._power_hold.set(state == Flipperstate.HOLD or state == Flipperstate.EOSHOLD)
             if state == Flipperstate.ENERGIZED:
                 self._eostimer.restart()
             else:
