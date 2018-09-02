@@ -22,7 +22,7 @@ setuptools.setup(
         'smbus2==0.2.1',
         'pyglet==1.2.4',
         'pyserial==2.7',
-        'pygame'
+#        'pygame'
         ]
 )
 
