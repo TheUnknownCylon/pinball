@@ -29,12 +29,12 @@
         }
 
         function hwactivate(hwid) {
-          $("." + hwid).css('background-color', '#00FF00');
-          $("." + hwid).attr('active', 1);
+          $("#hw" + hwid).css('background-color', '#00FF00');
+          $("#hw" + hwid).attr('active', 1);
         };
 
         function hwdeactivate(hwid) {
-          e = $("." + hwid);
+          e = $("#hw" + hwid);
           e.removeAttr('active');
           e.css('background-color', '#FFFF00');
           e.attr('fade', 0);
@@ -71,7 +71,6 @@
             $("#devices").html("")
           };
           ws.onmessage = function(evt) {
-            console.log(evt.data);
             var data = evt.data.split(":");
             var action = data[0];
 
@@ -79,10 +78,21 @@
               var status = data[1];
               var hwid = data[2];
               var name = data[3];
+              var isinput = data[4] == "True" ? true : false;
 
-              var field = $("." + hwid);
+              var field = $("#hw" + hwid);
+              console.log(field);
               if (field.length == 0) {
-                $("#devices").append('<div class="' + hwid + '">' + name + '</div>');
+                var inputclass = isinput ? "inputdevice" : "outputdevice";
+                $("#devices").append('<div id="hw'+hwid+'" class="device '+inputclass+'" hwid="' + hwid + '">' + name + '</div>');
+                if(isinput) {
+                  $("#hw"+hwid).mousedown(function(e) {
+                    ws.send('A:' + hwid);
+                  });
+                  $("#hw"+hwid).mouseup(function(e) {
+                    ws.send('D:' + hwid);
+                  });
+                }
                 sortUsingNestedText($("#devices"), "div");
                 field = $("." + hwid);
               }
