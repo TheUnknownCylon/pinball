@@ -30,20 +30,21 @@ Construction of a game application:
     B) 'Enjoy' :)
 
 """
-
 import logging
 
 from pinball.gameengine.gameengine import GameEngine
+from pinball.gameengine.audio.dummy import DummySoundManager as SoundManager
+
 from pinball.hardware.dummy import DummyController
+
 from pinball.gamedevices.flipper import Flipper
+from pinball.gamedevices.inlane import Inlane
 from pinball.gamedevices.led import Led, PwmLed, RGBLed
 from pinball.gamedevices.slingshot import Slingshot
-from pinball.gamedevices.inlane import Inlane
-from gamelogic import MyGame
+
 from pinball.debugger import DebugEngine
 
-from pinball.gameengine.audio.dummy import DummySoundManager
-
+from gamelogic import MyGame
 
 ##################################
 # 1) Instantiate hardware controllers
@@ -98,8 +99,6 @@ rgbled_3 = dummyController.getPwmOut("RGB-Led Blue", pwmi)
 rgbled = RGBLed(PwmLed(rgbled_1), PwmLed(rgbled_2), PwmLed(rgbled_3))
 rgbled.set(0x00ffaf)
 
-pwmled = PwmLed(dummyController.getPwmOut("Last", pwmi))
-
 ######################################
 # 3) Instantiate GameDevices -- using devices on controllers
 #    (composed of real-hardware devices)
@@ -124,7 +123,7 @@ inlane = Inlane(inlane_detect_upper, inlane_detect_lower)
 ######################################
 # 4) Instantiate game logic
 #
-sm = DummySoundManager()
+sm = SoundManager()
 game = MyGame(sm, flipperL, flipperR, slingshotL, slingshotR, inlane)
 
 # When invoked directly from the CLI, run the pinball engine as main process
