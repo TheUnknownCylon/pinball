@@ -1,14 +1,9 @@
 from pinball.hardware.controller import OutputController
-from pinball.hardware.hwdevice import OutputDevice, InputDevice, PwmOutputDevice
+from pinball.hardware.hwdevice import BinaryOutputDevice, InputDevice, PwmOutputDevice
 
 
-class DummyOutputDevice(OutputDevice):
-    def activate(self):
-        pass
-
-    def deactivate(self):
-        pass
-
+class DummyOutputDevice(BinaryOutputDevice):
+    pass
 
 class DummyInputDevice(InputDevice):
     pass
@@ -41,7 +36,7 @@ class DummyController(OutputController):
 
     def getOut(self, name) -> DummyOutputDevice:
         """Creates and returns a new dummy output device."""
-        outDevice = DummyOutputDevice(name)
+        outDevice = DummyOutputDevice(name, self)
         self._devices.append(outDevice)
         return outDevice
 
