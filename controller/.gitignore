@@ -1,0 +1,6 @@
+devenv
+runenv
+.tox
+.mypy*
+__pycache__
+*.egg-info

@@ -42,7 +42,7 @@ from pinball.gamedevices.inlane import Inlane
 from gamelogic import MyGame
 from pinball.debugger import DebugEngine
 
-from pinball.gameengine.sounds import PyGameSoundManager
+from pinball.gameengine.audio.dummy import DummySoundManager
 
 
 ##################################
@@ -124,7 +124,7 @@ inlane = Inlane(inlane_detect_upper, inlane_detect_lower)
 ######################################
 # 4) Instantiate game logic
 #
-sm = PyGameSoundManager()
+sm = DummySoundManager()
 game = MyGame(sm, flipperL, flipperR, slingshotL, slingshotR, inlane)
 
 # When invoked directly from the CLI, run the pinball engine as main process
