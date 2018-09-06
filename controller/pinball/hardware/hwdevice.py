@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from pinball.e_observable import Observable
+from pinball.events import Observable, EventType
 from pinball.hardware.controller import OutputController
 
+INPUTDEVICECHANGE = EventType()
+OUTPUTDEVICECHANGE = EventType()
 
 class Device(Observable):
     """Data class that represents a hardware device, such as a coil, switch, or LED."""
@@ -56,7 +58,7 @@ class InputDevice(Device):
         """
         if self._activated != activated:
             self._activated = activated
-            Observable.inform(self)
+            Observable.signal(self, INPUTDEVICECHANGE)
 
 
 class OutputDevice(Device):
@@ -98,7 +100,7 @@ class BinaryOutputDevice(OutputDevice):
         if self._activated != activated:
             self._activated = activated
             self._hwController.update(self)
-            Observable.inform(self)
+            Observable.signal(self, OUTPUTDEVICECHANGE)
 
     def get(self) -> bool:
         """
@@ -167,4 +169,3 @@ class PwmOutputDevice(OutputDevice):
     def maxIntensity(self) -> int:
         """Returns the maximum intensity value of this device."""
         return self._maxIntensity
-

@@ -1,14 +1,17 @@
 from __future__ import annotations
+from typing import List
 
 import logging
+import threading
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
-import threading
 
-from pinball.hardware.hwdevice import InputDevice
+from threading import Timer, Lock
+from pinball.hardware.hwdevice import Device
 
 from pinball.gameengine.gameengine import GameEngine
+from pinball.hardware.hwdevice import InputDevice, INPUTDEVICECHANGE, OUTPUTDEVICECHANGE
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +36,8 @@ class DebugEngine():
         return tornado.web.Application(
             [(r"/", PinballPage), (r"/websocket", DebugWebSocket, {
                 "devices": self._devices,
+                "gameengine": self._gameengine,
                 "gamelogic": self._gamelogic,
-                "fps": self._gameengine._fps
             })],
             debug=True)
 
@@ -42,10 +45,11 @@ class DebugEngine():
 class DebugWebSocket(tornado.websocket.WebSocketHandler):
     """Communication channel with the webpage"""
 
-    def initialize(self, devices, gamelogic, fps):
+    def initialize(self, gameengine: GameEngine, devices: List[Device],
+                   gamelogic):
+        self._fps = FPS(gameengine, self)
         self._devices = devices
         self._gamelogic = gamelogic
-        fps.observe(self, self._fpsupdate)
 
     def _deviceupdate(self, d, *args, **kwargs):
         """Sends device status updates to the GUI"""
@@ -56,9 +60,9 @@ class DebugWebSocket(tornado.websocket.WebSocketHandler):
         except:
             pass
 
-    def _fpsupdate(self, device):
+    def fps(self, fps):
         try:
-            self.write_message("FPS:{}".format(fps._fps))
+            self.write_message("FPS:{}".format(fps))
         except:
             pass
 
@@ -74,13 +78,15 @@ class DebugWebSocket(tornado.websocket.WebSocketHandler):
     def open(self):
         logger.debug("WebSocket opened")
         for d in self._devices:
-            d.observe(self, self._deviceupdate)
+            d.observe(self, INPUTDEVICECHANGE, self._deviceupdate)
+            d.observe(self, OUTPUTDEVICECHANGE, self._deviceupdate)
             self._deviceupdate(d)
 
     def on_close(self):
         logger.debug("WebSocket closed")
         for d in self._devices:
-            d.deobserve(self, self._deviceupdate)
+            d.deobserve(self, INPUTDEVICECHANGE, self._deviceupdate)
+            d.deobserve(self, OUTPUTDEVICECHANGE, self._deviceupdate)
 
 
 class PinballPage(tornado.web.RequestHandler):
@@ -88,3 +94,36 @@ class PinballPage(tornado.web.RequestHandler):
 
     def get(self):
         self.render("debugger/views/index.html")
+
+
+class FPS():
+    """
+    Simple class that can be used to keep track of the games frames per
+    second. Each time a game frame is over, the tick() method must be issued.
+
+    The FPS informs its FPS every second to its observers (using the game
+    engine internal inform mechanism)
+    """
+
+    def __init__(self, gameEngine: GameEngine, debugger: DebugWebSocket):
+        self._debugger = debugger
+        self._frames = 0
+        self._lock = Lock()
+
+        gameEngine.observe(self, GameEngine.TICK, self.tick)
+
+        # Start the FPS thread
+        self._printFPS()
+
+    def tick(self, obj, event):
+        with self._lock:
+            self._frames += 1
+
+    def _printFPS(self):
+        t = Timer(1.0, self._printFPS)
+        t.setDaemon(True)
+        t.start()
+
+        with self._lock:
+            self._debugger.fps(self._frames)
+            self._frames = 0

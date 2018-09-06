@@ -1,6 +1,8 @@
 from pinball.gamedevices.gamedevice import GameDevice
 
-from pinball.hardware.hwdevice import InputDevice
+from pinball.hardware.hwdevice import InputDevice, INPUTDEVICECHANGE
+from pinball.events import EventType
+
 
 class Inlane(GameDevice):
     """
@@ -22,10 +24,10 @@ class Inlane(GameDevice):
     LOWER = 1  # State: last switch activated was the lower switch
     UPPER = 2  # State: last switch activated was the upper switch
 
-    EVENT_INLANESTART = 0
-    EVENT_INLANEFAIL = 1
-    EVENT_INLANEPASSED = 2
-    EVENT_INLANEBACK = 3
+    EVENT_INLANESTART = EventType()
+    EVENT_INLANEFAIL = EventType()
+    EVENT_INLANEPASSED = EventType()
+    EVENT_INLANEBACK = EventType()
 
     def __init__(self, switch_upper: InputDevice,
                  switch_lower: InputDevice) -> None:
@@ -34,16 +36,17 @@ class Inlane(GameDevice):
         self._switch_upper = switch_upper
         self._switch_lower = switch_lower
 
-        self._switch_upper.observe(self, self.detectUpper)
-        self._switch_lower.observe(self, self.detectLower)
+        self._switch_upper.observe(self, INPUTDEVICECHANGE, self.detectUpper)
+        self._switch_lower.observe(self, INPUTDEVICECHANGE, self.detectLower)
 
         self._state = self.NONE
 
     def reset(self):
         self._state = self.NONE
 
-    def detectLower(self, cause: InputDevice, deviceState=None):
+    def detectLower(self, cause, eventType):
         """Callback for the inlane lower detection switch."""
+        deviceState = cause.isActivated()
         if not deviceState:
             return
 
@@ -51,15 +54,16 @@ class Inlane(GameDevice):
         self._state = self.LOWER
 
         if laststate == self.NONE:
-            self._triggerEvent(self.EVENT_INLANESTART)
+            self.signal(Inlane.EVENT_INLANESTART)
         elif laststate == self.UPPER:
             self.reset()
         elif laststate == self.LOWER:
-            self._triggerEvent(self.EVENT_INLANEFAIL)
+            self.signal(Inlane.EVENT_INLANEFAIL)
             self.reset()
 
-    def detectUpper(self, cause: InputDevice, deviceState=None):
+    def detectUpper(self, cause, eventType):
         """Callback for the inlane upper detection switch."""
+        deviceState = cause.isActivated()
         if not deviceState:
             return
 
@@ -67,27 +71,6 @@ class Inlane(GameDevice):
         self._state = self.UPPER
 
         if laststate == self.UPPER:
-            self._triggerEvent(self.EVENT_INLANEBACK)
+            self.signal(Inlane.EVENT_INLANEBACK)
         elif laststate == self.LOWER:
-            self._triggerEvent(self.EVENT_INLANEPASSED)
-
-    def registerForInlaneStart(self, observer, callback):
-        """Register a callback that is triggered when a ball is fired into
-        the inline (from the bottom). This trigger will be followed by a
-        inlaneFail trigger or inline passed trigger."""
-        self._addObserver(self.EVENT_INLANESTART, observer, callback)
-
-    def registerForInlaneFail(self, observer, callback):
-        """Register a callback that is triggered when a ball fails to reach
-        the top of the inlane and 'falls back'."""
-        self._addObserver(self.EVENT_INLANEFAIL, observer, callback)
-
-    def registerForInlanePassed(self, observer, callback):
-        """Register callback that is triggered when a ball has passed the
-        inlane and enters the game."""
-        self._addObserver(self.EVENT_INLANEPASSED, observer, callback)
-
-    def registerForInlaneBack(self, observer, callback):
-        """Register callback that is triggered when a ball that is currently in
-        the field returns in the inlane."""
-        self._addObserver(self.EVENT_INLANEBACK, observer, callback)
+            self.signal(Inlane.EVENT_INLANEPASSED)

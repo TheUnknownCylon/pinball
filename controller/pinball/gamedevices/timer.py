@@ -1,11 +1,10 @@
 import threading
 
-from pinball.e_observable import Observable
 from pinball.gamedevices.gamedevice import GameDevice
+from pinball.events import EventType
 
 
-class GameTimer(GameDevice, Observable):
-
+class GameTimer(GameDevice):
     """
     Simple timer that can be used in a game. Constructed with a timeout,
     can be started and stopped whenever the game wants to. If a timeout occurs,
@@ -14,10 +13,11 @@ class GameTimer(GameDevice, Observable):
     the observers are not notified.
     """
 
-    def __init__(self, timeout):
+    TIMER = EventType()
+
+    def __init__(self, timeout: float) -> None:
         """Constructor, timeout in seconds."""
         GameDevice.__init__(self)
-        Observable.__init__(self)
         self._t = None
         self._timeout = timeout
 
@@ -38,4 +38,4 @@ class GameTimer(GameDevice, Observable):
     def _handle(self):
         """Internal handle, informs all observers on the occurence of a
         timeout."""
-        self.inform()
+        self.signal(GameTimer.TIMER)

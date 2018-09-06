@@ -1,10 +1,8 @@
 import logging
 
-from pinball.hardware.hwdevice import InputDevice, BinaryOutputDevice
+from pinball.hardware.hwdevice import InputDevice, BinaryOutputDevice, INPUTDEVICECHANGE
 from pinball.gamedevices.gamedevice import GameDevice
 from pinball.gamedevices.timer import GameTimer
-
-EOSTIMEOUT = 1
 
 logger = logging.getLogger(__name__)
 
@@ -43,11 +41,11 @@ class Flipper(GameDevice):
         self._power_hold = power_hold
         self._eostimer = GameTimer(0.02)
 
-        button.observe(self, self.flipperEvent)
-        eos.observe(self, self.flipperEvent)
-        self._eostimer.observe(self, self.flipperEvent)
+        button.observe(self, INPUTDEVICECHANGE, self.flipperEvent)
+        eos.observe(self, INPUTDEVICECHANGE, self.flipperEvent)
+        self._eostimer.observe(self, GameTimer.TIMER, self.flipperEvent)
 
-    def flipperEvent(self, cause: InputDevice):
+    def flipperEvent(self, cause, event):
 
         state = self._state
         oldstate = self._state

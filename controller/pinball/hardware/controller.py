@@ -4,7 +4,7 @@ from abc import abstractmethod
 
 from typing import List
 
-from pinball.e_observable import Observable
+from pinball.events import Observable
 
 
 class Controller(Observable):

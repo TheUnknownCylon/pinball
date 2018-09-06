@@ -4,7 +4,7 @@ from time import time
 from pinball.gamedevices.gamedevice import GameDevice
 from pinball.gamedevices.timer import GameTimer
 
-from pinball.hardware.hwdevice import InputDevice
+from pinball.hardware.hwdevice import InputDevice, INPUTDEVICECHANGE
 from pinball.hardware.hwdevice import BinaryOutputDevice
 
 logger = logging.getLogger(__name__)
@@ -18,10 +18,10 @@ class Slingshot(GameDevice):
         self._coiltimer = GameTimer(0.02)
         self._lastshot = time()
 
-        detector.observe(self, self.slingshotDetect)
-        self._coiltimer.observe(self, self.deactivate)
+        detector.observe(self, INPUTDEVICECHANGE, self.slingshotDetect)
+        self._coiltimer.observe(self, GameTimer.TIMER, self.deactivate)
 
-    def slingshotDetect(self, detector):
+    def slingshotDetect(self, detector, eventtype):
         if not detector.isActivated():
             return
 
@@ -35,6 +35,6 @@ class Slingshot(GameDevice):
         self._coiltimer.restart()
         logging.info("slingshot fire")
 
-    def deactivate(self, detector):
+    def deactivate(self, detector, eventtype):
         self._coil.set(False)
         logging.info("slingshot low")
