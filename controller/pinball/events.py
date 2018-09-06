@@ -23,15 +23,14 @@ class Observable:
         self._observers: DefaultDict[EventType, List[
             ObserverRule]] = defaultdict(list)
 
-    def observe(self, observer: Any, eventType: EventType, callback: Callable):
+    def observe(self, eventType: EventType, callback: Callable):
         self._observers[eventType].append(
-            ObserverRule(observer, eventType, callback))
+            ObserverRule(eventType, callback))
 
-    def deobserve(self, observer: Any, eventType: EventType,
-                  callback: Callable):
+    def deobserve(self, eventType: EventType, callback: Callable):
         self._observers[eventType] = [
             rule for rule in self._observers[eventType]
-            if rule.observer is not observer and rule.callback is not callback
+            if rule.callback is not callback
         ]
 
     def signal(self, eventType: EventType):
@@ -55,9 +54,7 @@ class ObserverEvent():
 
 
 class ObserverRule():
-    def __init__(self, observer: Any, eventType: EventType,
-                 callback: Callable) -> None:
-        self.observer = observer
+    def __init__(self, eventType: EventType, callback: Callable) -> None:
         self.eventType = eventType
         self.callback = callback
 

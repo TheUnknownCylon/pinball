@@ -36,8 +36,8 @@ class Inlane(GameDevice):
         self._switch_upper = switch_upper
         self._switch_lower = switch_lower
 
-        self._switch_upper.observe(self, INPUTDEVICECHANGE, self.detectUpper)
-        self._switch_lower.observe(self, INPUTDEVICECHANGE, self.detectLower)
+        self._switch_upper.observe(INPUTDEVICECHANGE, self.detectUpper)
+        self._switch_lower.observe(INPUTDEVICECHANGE, self.detectLower)
 
         self._state = self.NONE
 

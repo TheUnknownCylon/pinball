@@ -20,10 +20,10 @@ class MyGame():
 
         self._points = 0
 
-        inlane.observe(self, Inlane.EVENT_INLANESTART, self.ball_launch)
-        inlane.observe(self, Inlane.EVENT_INLANEFAIL, self.ball_launch_fail)
-        inlane.observe(self, Inlane.EVENT_INLANEPASSED, self.ball_in_game)
-        inlane.observe(self, Inlane.EVENT_INLANEBACK, self.ball_returns)
+        inlane.observe(Inlane.EVENT_INLANESTART, self.ball_launch)
+        inlane.observe(Inlane.EVENT_INLANEFAIL, self.ball_launch_fail)
+        inlane.observe(Inlane.EVENT_INLANEPASSED, self.ball_in_game)
+        inlane.observe(Inlane.EVENT_INLANEBACK, self.ball_returns)
 
     def ball_launch(self, cause, event):
         logger.info(" GAME: BALL LAUNCH (JEAH!)")

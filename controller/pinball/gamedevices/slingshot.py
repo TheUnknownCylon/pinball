@@ -18,8 +18,8 @@ class Slingshot(GameDevice):
         self._coiltimer = GameTimer(0.02)
         self._lastshot = time()
 
-        detector.observe(self, INPUTDEVICECHANGE, self.slingshotDetect)
-        self._coiltimer.observe(self, GameTimer.TIMER, self.deactivate)
+        detector.observe(INPUTDEVICECHANGE, self.slingshotDetect)
+        self._coiltimer.observe(GameTimer.TIMER, self.deactivate)
 
     def slingshotDetect(self, detector, eventtype):
         if not detector.isActivated():

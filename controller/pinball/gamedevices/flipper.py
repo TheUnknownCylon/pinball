@@ -41,9 +41,9 @@ class Flipper(GameDevice):
         self._power_hold = power_hold
         self._eostimer = GameTimer(0.02)
 
-        button.observe(self, INPUTDEVICECHANGE, self.flipperEvent)
-        eos.observe(self, INPUTDEVICECHANGE, self.flipperEvent)
-        self._eostimer.observe(self, GameTimer.TIMER, self.flipperEvent)
+        button.observe(INPUTDEVICECHANGE, self.flipperEvent)
+        eos.observe(INPUTDEVICECHANGE, self.flipperEvent)
+        self._eostimer.observe(GameTimer.TIMER, self.flipperEvent)
 
     def flipperEvent(self, cause, event):
 

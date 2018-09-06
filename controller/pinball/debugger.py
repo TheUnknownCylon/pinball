@@ -78,15 +78,15 @@ class DebugWebSocket(tornado.websocket.WebSocketHandler):
     def open(self):
         logger.debug("WebSocket opened")
         for d in self._devices:
-            d.observe(self, INPUTDEVICECHANGE, self._deviceupdate)
-            d.observe(self, OUTPUTDEVICECHANGE, self._deviceupdate)
+            d.observe(INPUTDEVICECHANGE, self._deviceupdate)
+            d.observe(OUTPUTDEVICECHANGE, self._deviceupdate)
             self._deviceupdate(d)
 
     def on_close(self):
         logger.debug("WebSocket closed")
         for d in self._devices:
-            d.deobserve(self, INPUTDEVICECHANGE, self._deviceupdate)
-            d.deobserve(self, OUTPUTDEVICECHANGE, self._deviceupdate)
+            d.deobserve(INPUTDEVICECHANGE, self._deviceupdate)
+            d.deobserve(OUTPUTDEVICECHANGE, self._deviceupdate)
 
 
 class PinballPage(tornado.web.RequestHandler):
@@ -105,12 +105,12 @@ class FPS():
     engine internal inform mechanism)
     """
 
-    def __init__(self, gameEngine: GameEngine, debugger: DebugWebSocket):
+    def __init__(self, gameEngine: GameEngine, debugger: DebugWebSocket) -> None:
         self._debugger = debugger
         self._frames = 0
         self._lock = Lock()
 
-        gameEngine.observe(self, GameEngine.TICK, self.tick)
+        gameEngine.observe(GameEngine.TICK, self.tick)
 
         # Start the FPS thread
         self._printFPS()
