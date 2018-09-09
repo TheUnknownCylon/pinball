@@ -165,6 +165,7 @@ class PwmOutputDevice(OutputDevice):
         self._activated = value > 0
 
         self._hwController.update(self)
+        Observable.signal(self, OUTPUTDEVICECHANGE)
 
     def maxIntensity(self) -> int:
         """Returns the maximum intensity value of this device."""

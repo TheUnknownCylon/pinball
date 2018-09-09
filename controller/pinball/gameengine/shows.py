@@ -10,6 +10,8 @@ class ShowScript():
         return self
 
     def start(self, loop=False):
+        if not self._parts:
+            return
         show = Show(self._script(loop))
         show.start()
         return show

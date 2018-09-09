@@ -1,12 +1,14 @@
-from __future__ import annotations 
+from __future__ import annotations
 
 import logging
 from smbus2 import SMBus
 
 from typing import List
 
-from pinball.hardware.hwdevice import Device, BinaryOutputDevice, InputDevice
+from pinball.hardware.hwdevice import Device, BinaryOutputDevice, InputDevice, INPUTDEVICECHANGE
 from pinball.hardware.controller import OutputController
+
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -84,10 +86,10 @@ class Mcp23017(OutputController):
         self._pullup = [0x00, 0x00]
 
         # For bank A and B keep the input devices
-        self._indevices : List[List[Device]]= [[], []]
+        self._indevices: List[List[Device]] = [[], []]
 
         # Keep all devices in a single list to return to the Controller
-        self._devices : List[Device] = []
+        self._devices: List[Device] = []
 
         # Initialise by setting all values as output and set to LOW
         self.bus.write_byte_data(self._address, self.GPPUBA, 0x00)
@@ -113,7 +115,7 @@ class Mcp23017(OutputController):
         self._devices.append(device)
         return device
 
-    def getIn(self, name, pin, bank, pullup=True, **kwargs):
+    def getIn(self, name, pin, bank, pullup=True):
         """Returns an input device object associated with the provided pin and
         bank.
 
@@ -140,7 +142,7 @@ class Mcp23017(OutputController):
         self.bus.write_byte_data(self._address, self.IODIRB,
                                  self._directions[self.BANKB])
 
-        device = Mcp23017InputDevice(name, self, pin, bank, **kwargs)
+        device = Mcp23017InputDevice(name, self, pin, bank, pullup)
         self._indevices[bank].append(device)
         self._devices.append(device)
         return device
@@ -166,19 +168,23 @@ class Mcp23017(OutputController):
         if self._indevices[self.BANKA]:
             state = self.bus.read_byte_data(self._address, self.GPIOA)
             if state < 0:
-                state = 0
-            self._parseIn(self._indevices[self.BANKA], state)
+                logger.error(" incorrect state on bank A: {}".format(state))
+            else:
+                self._parseIn(self._indevices[self.BANKA], state)
 
         # Load input devices bank B
         if self._indevices[self.BANKB]:
             state = self.bus.read_byte_data(self._address, self.GPIOB)
             if state < 0:
-                state = 0
-            self._parseIn(self._indevices[self.BANKB], state)
+                logger.error(" incorrect state on bank B: {}".format(state))
+            else:
+                self._parseIn(self._indevices[self.BANKB], state)
 
     def update(self, outDevice: Mcp23017OutputDevice):
-        self._activate(outDevice) if outDevice.get() else self._deactivate(
-            outDevice)
+        if outDevice.get():
+            self._activate(outDevice)
+        else:
+            self._deactivate(outDevice)
 
     def _activate(self, device: Mcp23017OutputDevice):
         self._state[device.bank] |= device.pin
@@ -197,7 +203,7 @@ class Mcp23017(OutputController):
                     format(self._address, device, state, devstate,
                            device.oldstate))
                 device.oldstate = devstate
-                device.inform(devstate)
+                device._set(devstate)
 
 
 class Mcp23017OutputDevice(BinaryOutputDevice):
@@ -208,8 +214,13 @@ class Mcp23017OutputDevice(BinaryOutputDevice):
 
 
 class Mcp23017InputDevice(InputDevice):
-    def __init__(self, name, hwdevice, pin, bank, **kwargs) -> None:
+    def __init__(self, name, hwdevice, pin, bank, pullup) -> None:
         InputDevice.__init__(self, name)
+        self.pullup = pullup
         self.pin = (1 << pin)
         self.bank = bank  # pin on Bank A or Bank B
         self.oldstate = 0  # Known state, variable controlled by Mcp23017
+        self._set(not pullup)
+
+    def _set(self, value):
+        InputDevice._set(self, not value if self.pullup else value)

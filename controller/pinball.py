@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 """
 Simple event based Pinball controller.
 Author: TheUC
@@ -50,6 +49,23 @@ from pinball.debugger import DebugEngine
 
 from gamelogic import MyGame
 
+from pinball.events import Observable
+from pinball.hardware.hwdevice import InputDevice, INPUTDEVICECHANGE
+
+
+class inv(InputDevice):
+    def __init__(self, device: InputDevice) -> None:
+        InputDevice.__init__(self, "inv: {}".format(device.getName()))
+        self._device = device
+        device.observe(INPUTDEVICECHANGE, self._set)
+
+    def isActivated(self) -> bool:
+        return not self._device.isActivated()
+
+    def _set(self, device, event):
+        Observable.signal(self, INPUTDEVICECHANGE)
+
+
 ##################################
 # 1) Instantiate hardware controllers
 dummyController = DummyController()
@@ -62,36 +78,41 @@ controllers = [dummyController, raspberry, powerdriver16, mcp23017, tlc4950]
 ###################################
 # 2) Instantiate devices on controllers
 BANKB = 1
-flipper_L_POWER_ENERGIZED = powerdriver16.getOut("L Flipper coil (high)", 0, BANKB, 0)
-flipper_L_POWER_HOLD = powerdriver16.getOut("L Flipper coil (hold)", 0, BANKB, 1)
+flipper_L_POWER_ENERGIZED = powerdriver16.getOut("L Flipper coil (high)", 0,
+                                                 BANKB, 0)
+flipper_L_POWER_HOLD = powerdriver16.getOut("L Flipper coil (hold)", 0, BANKB,
+                                            1)
 flipper_L_EOS = raspberry.getIn("L Flipper EOS", -1)
-flipper_R_POWER_ENERGIZED = powerdriver16.getOut("R Flipper coil (high)", 0, BANKB, 2)
-flipper_R_POWER_HOLD = powerdriver16.getOut("R Flipper coil (hold)", 0, BANKB, 3)
-flipper_R_EOS = raspberry.getIn("R Flipper EOS", -1)
 flipper_L_BUTTON = raspberry.getIn("L Flipper button", 23)
+
+flipper_R_POWER_ENERGIZED = powerdriver16.getOut("R Flipper coil (high)", 0,
+                                                 BANKB, 2)
+flipper_R_POWER_HOLD = powerdriver16.getOut("R Flipper coil (hold)", 0, BANKB,
+                                            3)
+flipper_R_EOS = raspberry.getIn("R Flipper EOS", -1)
 flipper_R_BUTTON = raspberry.getIn("R Flipper button", 24)
 
-slingshot_left_detect = dummyController.getIn("L Slingshot detect")
-slingshot_left_coil = dummyController.getOut("L Slingshot kicker")
-slingshot_right_detect = dummyController.getIn("R Slingshot detect")
-slingshot_right_coil = dummyController.getOut("R Slingshot kicker")
+slingshot_left_detect = mcp23017.getIn("L Slingshot detect", 2, 1, True)
+slingshot_left_coil = powerdriver16.getOut("L Slingshot kicker", 0, BANKB, 4)
+slingshot_right_detect = mcp23017.getIn("R Slingshot detect", 3, 1, True)
+slingshot_right_coil = powerdriver16.getOut("R Slingshot kicker", 0, BANKB, 5)
 
-inlane_detect_upper = dummyController.getIn("Switch inlane Upper")
-inlane_detect_lower = dummyController.getIn("Switch inlane Lower")
+inlane_detect_upper = inv(mcp23017.getIn("Switch inlane Upper", 0, 1, True))
+inlane_detect_lower = inv(mcp23017.getIn("Switch inlane Lower", 1, 1, True))
 
 pwmi = (1 << 12) - 1
 
 balltrough_kicker = dummyController.getOut("Balltrough kicker")
-balltrough_led_0 = dummyController.getPwmOut("Balltrough Led 0", pwmi)
-balltrough_led_1 = dummyController.getPwmOut("Balltrough Led 1", pwmi)
-balltrough_led_2 = dummyController.getPwmOut("Balltrough Led 2", pwmi)
-balltrough_led_3 = dummyController.getPwmOut("Balltrough Led 3", pwmi)
-balltrough_led_4 = dummyController.getPwmOut("Balltrough Led 4", pwmi)
-balltrough_in_0 = dummyController.getIn("Balltrough detect 0")
-balltrough_in_1 = dummyController.getIn("Balltrough detect 1")
-balltrough_in_2 = dummyController.getIn("Balltrough detect 2")
-balltrough_in_3 = dummyController.getIn("Balltrough detect 3")
-balltrough_in_4 = dummyController.getIn("Balltrough detect 4")
+balltrough_led_0 = tlc4950.getPwmOut("Balltrough Led 0", 10)
+balltrough_led_1 = tlc4950.getPwmOut("Balltrough Led 1", 11)
+balltrough_led_2 = tlc4950.getPwmOut("Balltrough Led 2", 12)
+balltrough_led_3 = tlc4950.getPwmOut("Balltrough Led 3", 13)
+balltrough_led_4 = tlc4950.getPwmOut("Balltrough Led 4", 14)
+balltrough_in_0 = mcp23017.getIn("Balltrough detect 0", 7, 0, True)
+balltrough_in_1 = mcp23017.getIn("Balltrough detect 1", 6, 0, True)
+balltrough_in_2 = mcp23017.getIn("Balltrough detect 2", 5, 0, True)
+balltrough_in_3 = mcp23017.getIn("Balltrough detect 3", 4, 0, True)
+balltrough_in_4 = mcp23017.getIn("Balltrough detect 4", 3, 0, True)
 #balltrough_opto0 = Opto(PwmLed(balltrough_led_0), balltrough_in_0)
 #balltrough_opto1 = Opto(PwmLed(balltrough_led_1), balltrough_in_1)
 #balltrough_opto2 = Opto(PwmLed(balltrough_led_2), balltrough_in_2)
@@ -108,21 +129,32 @@ rgbled_3 = dummyController.getPwmOut("RGB-Led Blue", pwmi)
 rgbled = RGBLed(PwmLed(rgbled_1), PwmLed(rgbled_2), PwmLed(rgbled_3))
 rgbled.set(0x00ffaf)
 
+from pinball.gameengine.shows import Show, ShowScript
+balltrough_led_0.setIntensity(0)
+balltrough_led_1.setIntensity(0)
+balltrough_led_2.setIntensity(0)
+balltrough_led_3.setIntensity(0)
+balltrough_led_4.setIntensity(0)
+
+s = ShowScript()
+s.add(lambda: balltrough_led_0.setIntensity(1 << 12), 0.5)
+s.add(lambda: balltrough_led_0.setIntensity(0), 0.5)
+s.add(lambda: balltrough_led_1.setIntensity(1 << 12), 0.5)
+s.add(lambda: balltrough_led_1.setIntensity(0), 0.5)
+s.add(lambda: balltrough_led_2.setIntensity(1 << 12), 0.5)
+s.add(lambda: balltrough_led_2.setIntensity(0), 0.5)
+s.add(lambda: balltrough_led_3.setIntensity(1 << 12), 0.5)
+s.add(lambda: balltrough_led_3.setIntensity(0), 0.5)
+s.add(lambda: balltrough_led_4.setIntensity(1 << 12), 0.5)
+s.add(lambda: balltrough_led_4.setIntensity(0), 0.5)
+
 ######################################
 # 3) Instantiate GameDevices -- using devices on controllers
 #    (composed of real-hardware devices)
-flipperL = Flipper(flipper_L_BUTTON, flipper_L_EOS,
-                   flipper_L_POWER_ENERGIZED, flipper_L_POWER_HOLD)
-flipperR = Flipper(flipper_R_BUTTON, flipper_R_EOS,
-                   flipper_R_POWER_ENERGIZED, flipper_R_POWER_HOLD)
-
-#balltrough = Balltrough(balltrough_kicker, [
-#    balltrough_opto0,
-#    balltrough_opto1,
-#    balltrough_opto2,
-#    balltrough_opto3,
-#    balltrough_opto4
-#])
+flipperL = Flipper(flipper_L_BUTTON, flipper_L_EOS, flipper_L_POWER_ENERGIZED,
+                   flipper_L_POWER_HOLD)
+flipperR = Flipper(flipper_R_BUTTON, flipper_R_EOS, flipper_R_POWER_ENERGIZED,
+                   flipper_R_POWER_HOLD)
 
 slingshotL = Slingshot(slingshot_left_detect, slingshot_left_coil)
 slingshotR = Slingshot(slingshot_right_detect, slingshot_right_coil)
@@ -139,7 +171,8 @@ game = MyGame(sm, flipperL, flipperR, slingshotL, slingshotR, inlane)
 if __name__ == "__main__":
     logger = logging.getLogger()
     handler = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s %(name)-20s %(levelname)-8s %(message)s')
+    formatter = logging.Formatter(
+        '%(asctime)s %(name)-20s %(levelname)-8s %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.setLevel(logging.DEBUG)
@@ -147,4 +180,6 @@ if __name__ == "__main__":
     ge = GameEngine(controllers, game)
     debugger = DebugEngine(ge)
     debugger.start()
+    s.start(loop=True)
+
     ge.run()
